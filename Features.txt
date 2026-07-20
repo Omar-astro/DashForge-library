@@ -1,0 +1,44 @@
+# DashForge Feature Tracker
+
+## Dashboard customization
+
+- [D] Dedicated color-customization section for chart areas, dashboard background, KPI backgrounds, header, footer, and text.
+- [ ] Built-in themes (for example, light and dark) so users can start from a preset instead of configuring every color.
+- [ ] Logo support.
+- [ ] Optional subtitle displayed directly below the dashboard title.
+- [ ] Font selection.
+- [ ] Customizable footer content.
+- [ ] Optional timestamp in the footer (`True` / `False`).
+- [ ] Hide the toolbar when desired.
+
+## Layout and content
+
+- [ ] Let users choose the number of charts per row, up to three.
+- [ ] Let users configure individual chart sizes.
+- [D] Use sensible defaults whenever an option is omitted.
+- [ ] Allow a library text box to be placed in the dashboard instead of a chart.
+- [ ] Consider a compact text box beneath a chart (needs design work so it does not conflict with the editable footer).
+
+## Data and output
+
+- [ ] Data-table support.
+- [ ] Dashboard image export (a clean generated image, rather than a screenshot).
+
+## Future versions / research -----------------------------------
+
+- [ ] Dashboard filters - define an implementation approach.
+- [ ] Multiple dashboard pages.
+- [ ] Responsive layouts for different screen sizes and devices.
+- [ ] CSV tab with search for finding items within uploaded/displayed CSV data.
+
+## Decisions / notes
+
+- Plotly is the primary charting engine through Dash.
+- Plotly already provides chart image export; dashboard-level image export is the useful addition.
+- No dashboard description for now, to preserve spacing.
+- No user watermark for now because the footer is customizable.
+- A DashForge watermark on the far-left side of the footer is under consideration.
+- Dashboard-width controls are not currently a priority.
+- Rounded corners are optional and not currently necessary.
+- PDF and PowerPoint export are not currently priorities.
+- Search is mainly valuable for the CSV-tab use case.

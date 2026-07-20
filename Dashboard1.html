@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="style1.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Dashboard</h1>
+            <div class="header-controls">
+                <select id="viewModeDropdown" onchange="switchViewMode(this.value)">
+                    <option value="graphs">Graphs</option>
+                    <option value="dataset">Dataset</option>
+                </select>
+                <button onclick="exportCharts()">Export</button>
+                <button id="filterToggleBtn" onclick="toggleFilterHeader()">▼</button>
+            </div>
+        </header>
+
+        <div id="chartFiltersHeader" class="chart-filters-header" style="display: none;">
+            <div class="filter-group">
+                <label>Failed Students Filter:</label>
+                <input type="checkbox" id="chart2FilterToggle" class="filter-checkbox">
+                <label for="chart2FilterToggle" class="filter-checkbox-label">Apply</label>
+                <label>Year:</label>
+                <select id="chart2YearFilter">
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+                <button onclick="filterChart2ByYear()" class="filter-button">✓</button>
+            </div>
+
+            <div class="filter-group">
+                <label>Passed Students Filter:</label>
+                <input type="checkbox" id="chart3FilterToggle" class="filter-checkbox">
+                <label for="chart3FilterToggle" class="filter-checkbox-label">Apply</label>
+                <label>Year:</label>
+                <select id="chart3YearFilter">
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+                <button onclick="filterChart3ByYear()" class="filter-button">✓</button>
+            </div>
+        </div>
+
+        <div class="main-wrapper">
+            <aside class="sidebar">
+                <div class="sidebar-stat">
+                    <div class="stat-label">Total number of students:</div>
+                    <div class="stat-value" id="totalStudentsValue">-</div>
+                </div>
+                <div class="sidebar-stat">
+                    <div class="stat-label">Number of subjects:</div>
+                    <div class="stat-value" id="totalSubjectsValue">-</div>
+                </div>
+                <div class="sidebar-stat">
+                    <div class="stat-label">Average pass rate:</div>
+                    <div class="stat-value" id="avgPassRateValue">-</div>
+                </div>
+                <div class="sidebar-stat">
+                    <div class="stat-label">Average fail rate:</div>
+                    <div class="stat-value" id="avgFailRateValue">-</div>
+                </div>
+                <div class="sidebar-stat">
+                    <div class="stat-label">Average base pay:</div>
+                    <div class="stat-value" id="avgBasePayValue">-</div>
+                </div>
+                <div class="sidebar-stat">
+                    <div class="stat-label">Highest paying role:</div>
+                    <div class="stat-value" id="highestPayingRoleValue">-</div>
+                </div>
+            </aside>
+
+            <main id="graphsView">
+            <div class="dashboard-content">
+                <div class="chart-container">
+                    <!-- CHART 1 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Total Students per Year</h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chart1" class="chart-body">
+                                <!-- Total Students per Year -->
+                                <!-- Styles -->
+                                <style>
+                                #chartdiv1 {
+                                width: 100%;
+                                height: 260px;
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                am5.ready(function() {
+
+                                // Create root element
+                                var root = am5.Root.new("chartdiv1");
+
+                                // Create custom theme for better visibility
+                                var myTheme = am5.Theme.new(root);
+                                
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                    stroke: am5.color(0x555555),
+                                    strokeOpacity: 0.6
+                                });
+                                
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                    stroke: am5.color(0x444444),
+                                    strokeOpacity: 0.3
+                                });
+
+                                // Set themes
+                                root.setThemes([
+                                am5themes_Animated.new(root),
+                                myTheme
+                                ]);
+
+                                // Create chart
+                                var chart = root.container.children.push(am5xy.XYChart.new(root, {
+                                panX: true,
+                                panY: true,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                pinchZoomX: true
+                                }));
+
+                                chart.set("scrollbarX", am5.Scrollbar.new(root, {
+                                orientation: "horizontal"
+                                }));
+
+                                // Create axes
+                                var xRenderer = am5xy.AxisRendererX.new(root, {
+                                minGridDistance: 60,
+                                minorGridEnabled: true
+                                });
+
+                                var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+                                baseInterval: { timeUnit: "minute", count: 30 },
+                                renderer: xRenderer,
+                                tooltip: am5.Tooltip.new(root, {}),
+                                extraMin: 0.01,
+                                extraMax: 0.01,
+                                tooltipLocation: 0
+                                }));
+
+                                var yRenderer = am5xy.AxisRendererY.new(root, {});
+
+                                var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+                                renderer: yRenderer
+                                }));
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+                                behavior: "none",
+                                xAxis: xAxis
+                                }));
+                                cursor.lineY.set("visible", false);
+
+                                // Add series
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+                                var series = chart.series.push(am5xy.LineSeries.new(root, {
+                                name: "Total Students per Year",
+                                xAxis: xAxis,
+                                yAxis: yAxis,
+                                valueYField: "value",
+                                valueXField: "timestamp",
+                                locationX: 0,
+                                fill: am5.color(0xc83830),
+                                stroke: am5.color(0xc83830),
+                                seriesTooltipTarget: "bullet",
+                                tooltip: am5.Tooltip.new(root, {
+                                    labelText: "{valueY}"
+                                })
+                                }));
+
+                                series.bullets.push(function () {
+                                var circleTemplate = am5.Template.new({
+                                    radius: 6,
+                                    templateField: "bulletSettings",
+                                    fill: series.get("fill"),
+                                    strokeWidth: 2,
+                                    stroke: root.interfaceColors.get("background")
+                                })
+
+                                var circle = am5.Circle.new(root, {}, circleTemplate);
+
+                                return am5.Bullet.new(root, {
+                                    sprite: circle,
+                                    locationX: 0
+                                });
+                                });
+
+                                series.bullets.push(function () {
+                                var label = am5.Label.new(root, {
+                                    populateText: true,
+                                    text: "{valueY}",
+                                    centerX: am5.p50,
+                                    centerY: 30,
+                                    fontSize: 10,
+                                    fontWeight: "bold",
+                                    paddingBottom: 4,
+                                    paddingTop: 4,
+                                    paddingLeft: 6,
+                                    paddingRight: 6,
+                                    fill: am5.Color.brighten(series.get("fill"), -0.1),
+                                });
+
+                                label.set("background", am5.RoundedRectangle.new(root, {
+                                    fill: am5.color(0xffffff),
+                                    fillOpacity: 0.75,
+                                    cornerRadiusBL: 3,
+                                    cornerRadiusBR: 3,
+                                    cornerRadiusTL: 3,
+                                    cornerRadiusTR: 3,
+                                    stroke: series.get("fill"),
+                                }));
+
+                                return am5.Bullet.new(root, {
+                                    sprite: label,
+                                    locationX: 0
+                                });
+                                });
+
+                                // Fetch and process data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                                        
+                                        console.log('Headers:', headers);
+                                        console.log('Year Index:', yearIndex, 'Students Index:', studentsIndex);
+                                        
+                                        // Group by year and sum students
+                                        const yearMap = {};
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+                                            
+                                            if (yearIndex >= 0 && studentsIndex >= 0) {
+                                                const year = parseInt(values[yearIndex]);
+                                                const students = parseInt(values[studentsIndex]);
+                                                
+                                                if (!isNaN(year) && !isNaN(students)) {
+                                                    yearMap[year] = (yearMap[year] || 0) + students;
+                                                }
+                                            }
+                                        }
+                                        
+                                        console.log('Grouped data:', yearMap);
+                                        
+                                        // Convert to chart data format
+                                        const chartData = Object.keys(yearMap)
+                                            .sort((a, b) => parseInt(a) - parseInt(b))
+                                            .map(year => ({
+                                                timestamp: new Date(parseInt(year), 0, 1).getTime(),
+                                                value: yearMap[year]
+                                            }));
+                                        
+                                        console.log('Chart data:', chartData);
+                                        
+                                        // Update chart
+                                        if (chartData.length > 0) {
+                                            series.data.setAll(chartData);
+                                            series.appear(1000);
+                                            chart.appear(1000, 100);
+                                        } else {
+                                            console.error('No valid data found');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading data:', error);
+                                        // Fallback data
+                                        series.data.setAll([{
+                                            "timestamp": new Date(2021, 0, 1).getTime(),
+                                            "value": 1000
+                                        }]);
+                                        series.appear(1000);
+                                        chart.appear(1000, 100);
+                                    });
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CHART 2 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Failed Students by Subject <span id="chart2YearDisplay"></span></h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chart2" class="chart-body">
+                                <!-- Failed Students by Subject -->
+                                <!-- Styles -->
+                                <style>
+                                #chartdiv2 {
+                                width: 100%;
+                                height: 260px;
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                // Store chart references globally for filtering
+                                var chart2Data = {
+                                    root: null,
+                                    chart: null,
+                                    series: null,
+                                    xAxis: null
+                                };
+
+                                am5.ready(function() {
+
+                                // Create root element
+                                // https://www.amcharts.com/docs/v5/getting-started/#Root_element
+                                var root = am5.Root.new("chartdiv2");
+                                chart2Data.root = root;
+
+                                // Create custom theme for better visibility
+                                var myTheme = am5.Theme.new(root);
+                                
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                    stroke: am5.color(0x555555),
+                                    strokeOpacity: 0.6
+                                });
+                                
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                    stroke: am5.color(0x444444),
+                                    strokeOpacity: 0.3
+                                });
+
+                                // Set themes
+                                // https://www.amcharts.com/docs/v5/concepts/themes/
+                                root.setThemes([
+                                am5themes_Animated.new(root),
+                                myTheme
+                                ]);
+
+                                // Create chart
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/
+                                var chart = root.container.children.push(am5xy.XYChart.new(root, {
+                                panX: true,
+                                panY: true,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                pinchZoomX: true,
+                                paddingLeft:0,
+                                paddingRight:1
+                                }));
+                                chart2Data.chart = chart;
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+                                cursor.lineY.set("visible", false);
+
+
+                                // Create axes
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+                                var xRenderer = am5xy.AxisRendererX.new(root, { 
+                                minGridDistance: 30, 
+                                minorGridEnabled: true
+                                });
+
+                                xRenderer.labels.template.setAll({
+                                rotation: -90,
+                                centerY: am5.p50,
+                                centerX: am5.p100,
+                                paddingRight: 15
+                                });
+
+                                xRenderer.grid.template.setAll({
+                                location: 1
+                                })
+
+                                var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+                                maxDeviation: 0.3,
+                                categoryField: "country",
+                                renderer: xRenderer,
+                                tooltip: am5.Tooltip.new(root, {})
+                                }));
+                                chart2Data.xAxis = xAxis;
+
+                                var yRenderer = am5xy.AxisRendererY.new(root, {
+                                strokeOpacity: 0.1
+                                })
+
+                                var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+                                maxDeviation: 0.3,
+                                renderer: yRenderer
+                                }));
+
+                                // Create series
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+                                var series = chart.series.push(am5xy.ColumnSeries.new(root, {
+                                name: "Failed Students",
+                                xAxis: xAxis,
+                                yAxis: yAxis,
+                                valueYField: "value",
+                                sequencedInterpolation: true,
+                                categoryXField: "country",
+                                tooltip: am5.Tooltip.new(root, {
+                                    labelText: "{country}: {value} students failed"
+                                })
+                                }));
+                                chart2Data.series = series;
+
+                                series.columns.template.setAll({ cornerRadiusTL: 5, cornerRadiusTR: 5, strokeOpacity: 0 });
+                                series.columns.template.adapters.add("fill", function (fill, target) {
+                                return chart.get("colors").getIndex(series.columns.indexOf(target));
+                                });
+
+                                series.columns.template.adapters.add("stroke", function (stroke, target) {
+                                return chart.get("colors").getIndex(series.columns.indexOf(target));
+                                });
+
+                                // Fetch and process data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                                        const subjectIndex = headers.findIndex(h => h.toLowerCase() === 'subject');
+                                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                                        const failRateIndex = headers.findIndex(h => h.toLowerCase() === 'fail_rate');
+                                        
+                                        // Get selected year from dropdown
+                                        const selectedYear = document.getElementById('chart2YearFilter').value;
+                                        
+                                        // Group by subject and sum failed students for selected year
+                                        const subjectMap = {};
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+                                            
+                                            if (yearIndex >= 0 && subjectIndex >= 0 && studentsIndex >= 0 && failRateIndex >= 0) {
+                                                const year = values[yearIndex];
+                                                const subject = values[subjectIndex];
+                                                const students = parseInt(values[studentsIndex]);
+                                                const failRate = parseFloat(values[failRateIndex]);
+                                                
+                                                if (year === selectedYear && subject && !isNaN(students) && !isNaN(failRate)) {
+                                                    const failedStudents = students * failRate;
+                                                    subjectMap[subject] = (subjectMap[subject] || 0) + failedStudents;
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Convert to chart data format
+                                        let chartData = Object.keys(subjectMap)
+                                            .map(subject => ({
+                                                country: subject,
+                                                value: Math.round(subjectMap[subject])
+                                            }));
+                                        
+                                        // Check if filter checkbox is checked
+                                        const filterCheckbox = document.getElementById('chart2FilterToggle');
+                                        if (filterCheckbox && filterCheckbox.checked) {
+                                            // Sort by value descending (highest to lowest)
+                                            chartData.sort((a, b) => b.value - a.value);
+                                        } else {
+                                            // Sort alphabetically by subject
+                                            chartData.sort((a, b) => a.country.localeCompare(b.country));
+                                        }
+                                        
+                                        // Update chart
+                                        if (chartData.length > 0) {
+                                            xAxis.data.setAll(chartData);
+                                            series.data.setAll(chartData);
+                                            series.appear(1000);
+                                            chart.appear(1000, 100);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading data:', error);
+                                    });
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv2"></div>
+                                amCharts
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CHART 3 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Passed Students by Subject <span id="chart3YearDisplay"></span></h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chart3" class="chart-body">
+                                <!-- Passed Students by Subject -->
+                                <!-- Styles -->
+                                <style>
+                                #chartdiv3 {
+                                width: 100%;
+                                height: 260px;
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                // Store chart references globally for filtering
+                                var chart3Data = {
+                                    root: null,
+                                    chart: null,
+                                    series: null,
+                                    xAxis: null
+                                };
+
+                                am5.ready(function() {
+
+                                // Create root element
+                                // https://www.amcharts.com/docs/v5/getting-started/#Root_element
+                                var root = am5.Root.new("chartdiv3");
+                                chart3Data.root = root;
+
+                                // Create custom theme for better visibility
+                                var myTheme = am5.Theme.new(root);
+                                
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                    stroke: am5.color(0x555555),
+                                    strokeOpacity: 0.6
+                                });
+                                
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                    stroke: am5.color(0x444444),
+                                    strokeOpacity: 0.3
+                                });
+
+                                // Set themes
+                                // https://www.amcharts.com/docs/v5/concepts/themes/
+                                root.setThemes([
+                                am5themes_Animated.new(root),
+                                myTheme
+                                ]);
+
+                                // Create chart
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/
+                                var chart = root.container.children.push(am5xy.XYChart.new(root, {
+                                panX: true,
+                                panY: true,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                pinchZoomX: true,
+                                paddingLeft:0,
+                                paddingRight:1
+                                }));
+                                chart3Data.chart = chart;
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+                                cursor.lineY.set("visible", false);
+
+
+                                // Create axes
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+                                var xRenderer = am5xy.AxisRendererX.new(root, { 
+                                minGridDistance: 30, 
+                                minorGridEnabled: true
+                                });
+
+                                xRenderer.labels.template.setAll({
+                                rotation: -90,
+                                centerY: am5.p50,
+                                centerX: am5.p100,
+                                paddingRight: 15
+                                });
+
+                                xRenderer.grid.template.setAll({
+                                location: 1
+                                })
+
+                                var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+                                maxDeviation: 0.3,
+                                categoryField: "country",
+                                renderer: xRenderer,
+                                tooltip: am5.Tooltip.new(root, {})
+                                }));
+                                chart3Data.xAxis = xAxis;
+
+                                var yRenderer = am5xy.AxisRendererY.new(root, {
+                                strokeOpacity: 0.1
+                                })
+
+                                var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+                                maxDeviation: 0.3,
+                                renderer: yRenderer
+                                }));
+
+                                // Create series
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+                                var series = chart.series.push(am5xy.ColumnSeries.new(root, {
+                                name: "Passed Students",
+                                xAxis: xAxis,
+                                yAxis: yAxis,
+                                valueYField: "value",
+                                sequencedInterpolation: true,
+                                categoryXField: "country",
+                                tooltip: am5.Tooltip.new(root, {
+                                    labelText: "{country}: {value} students passed"
+                                })
+                                }));
+                                chart3Data.series = series;
+
+                                series.columns.template.setAll({ cornerRadiusTL: 5, cornerRadiusTR: 5, strokeOpacity: 0 });
+                                series.columns.template.adapters.add("fill", function (fill, target) {
+                                return chart.get("colors").getIndex(series.columns.indexOf(target));
+                                });
+
+                                series.columns.template.adapters.add("stroke", function (stroke, target) {
+                                return chart.get("colors").getIndex(series.columns.indexOf(target));
+                                });
+
+                                // Fetch and process data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                                        const subjectIndex = headers.findIndex(h => h.toLowerCase() === 'subject');
+                                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                                        const passRateIndex = headers.findIndex(h => h.toLowerCase() === 'pass_rate');
+                                        
+                                        // Get selected year from dropdown
+                                        const selectedYear = document.getElementById('chart3YearFilter').value;
+                                        
+                                        // Group by subject and sum passed students for selected year
+                                        const subjectMap = {};
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+                                            
+                                            if (yearIndex >= 0 && subjectIndex >= 0 && studentsIndex >= 0 && passRateIndex >= 0) {
+                                                const year = values[yearIndex];
+                                                const subject = values[subjectIndex];
+                                                const students = parseInt(values[studentsIndex]);
+                                                const passRate = parseFloat(values[passRateIndex]);
+                                                
+                                                if (year === selectedYear && subject && !isNaN(students) && !isNaN(passRate)) {
+                                                    const passedStudents = students * passRate;
+                                                    subjectMap[subject] = (subjectMap[subject] || 0) + passedStudents;
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Convert to chart data format
+                                        let chartData = Object.keys(subjectMap)
+                                            .map(subject => ({
+                                                country: subject,
+                                                value: Math.round(subjectMap[subject])
+                                            }));
+                                        
+                                        // Check if filter checkbox is checked
+                                        const filterCheckbox = document.getElementById('chart3FilterToggle');
+                                        if (filterCheckbox && filterCheckbox.checked) {
+                                            // Sort by value descending (highest to lowest)
+                                            chartData.sort((a, b) => b.value - a.value);
+                                        } else {
+                                            // Sort alphabetically by subject
+                                            chartData.sort((a, b) => a.country.localeCompare(b.country));
+                                        }
+                                        
+                                        // Update chart
+                                        if (chartData.length > 0) {
+                                            xAxis.data.setAll(chartData);
+                                            series.data.setAll(chartData);
+                                            series.appear(1000);
+                                            chart.appear(1000, 100);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading data:', error);
+                                    });
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CHART 4 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Students by Delivery Mode & Year</h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chart4" class="chart-body">
+                                <!-- Students by Delivery Mode & Year -->
+                                 <!-- Styles -->
+                                <style>
+                                #chartdiv {
+                                width: 100%;
+                                height: 260px;
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                am5.ready(function() {
+
+                                // Create root element
+                                // https://www.amcharts.com/docs/v5/getting-started/#Root_element
+                                var root = am5.Root.new("chartdiv");
+
+                                // Create custom theme for better visibility
+                                var myTheme = am5.Theme.new(root);
+                                
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                    stroke: am5.color(0x555555),
+                                    strokeOpacity: 0.6
+                                });
+                                
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                    stroke: am5.color(0x444444),
+                                    strokeOpacity: 0.3
+                                });
+
+                                // Set themes
+                                // https://www.amcharts.com/docs/v5/concepts/themes/
+                                root.setThemes([
+                                am5themes_Animated.new(root),
+                                myTheme
+                                ]);
+
+
+                                // Create chart
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/
+                                var chart = root.container.children.push(am5xy.XYChart.new(root, {
+                                panX: true,
+                                panY: true,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                layout: root.verticalLayout,
+                                pinchZoomX:true
+                                }));
+
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+                                behavior: "none"
+                                }));
+                                cursor.lineY.set("visible", false);
+
+
+                                // Create axes first
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+                                var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+                                categoryField: "year",
+                                startLocation: 0.5,
+                                endLocation: 0.5,
+                                renderer: am5xy.AxisRendererX.new(root, {
+                                    minorGridEnabled: true,
+                                    minGridDistance: 80
+                                }),
+                                tooltip: am5.Tooltip.new(root, {})
+                                }));
+
+                                var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+                                min: 0,
+                                calculateTotals: true,
+                                numberFormat: "#",
+                                renderer: am5xy.AxisRendererY.new(root, {
+                                    pan:"zoom"
+                                })
+                                }));
+
+                                // Add legend
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+                                var legend = chart.children.push(am5.Legend.new(root, {
+                                centerX: am5.p50,
+                                x: am5.p50
+                                }));
+
+                                legend.data.setAll(chart.series.values);
+
+                                // Add scrollbar
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+                                chart.set("scrollbarX", am5.Scrollbar.new(root, {
+                                orientation: "horizontal"
+                                }));
+
+                                // Fetch and process data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                                        const deliveryModeIndex = headers.findIndex(h => h.toLowerCase() === 'delivery_mode');
+
+                                        // Group data by year and delivery mode
+                                        const yearMap = {};
+                                        const deliveryModes = new Set();
+
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+
+                                            if (yearIndex >= 0 && studentsIndex >= 0 && deliveryModeIndex >= 0) {
+                                                const year = values[yearIndex];
+                                                const students = parseInt(values[studentsIndex]);
+                                                const deliveryMode = values[deliveryModeIndex];
+
+                                                if (year && !isNaN(students) && deliveryMode) {
+                                                    if (!yearMap[year]) {
+                                                        yearMap[year] = {};
+                                                    }
+                                                    if (!yearMap[year][deliveryMode]) {
+                                                        yearMap[year][deliveryMode] = 0;
+                                                    }
+                                                    yearMap[year][deliveryMode] += students;
+                                                    deliveryModes.add(deliveryMode);
+                                                }
+                                            }
+                                        }
+
+                                        // Convert to chart data format
+                                        const chartData = Object.keys(yearMap).sort().map(year => {
+                                            const row = { year: year };
+                                            deliveryModes.forEach(mode => {
+                                                row[mode] = yearMap[year][mode] || 0;
+                                            });
+                                            return row;
+                                        });
+
+                                        xAxis.data.setAll(chartData);
+
+                                        // Create series for each delivery mode (sorted alphabetically)
+                                        function createSeries(name, field) {
+                                            var series = chart.series.push(am5xy.LineSeries.new(root, {
+                                                name: name,
+                                                stacked: true,
+                                                xAxis: xAxis,
+                                                yAxis: yAxis,
+                                                valueYField: field,
+                                                categoryXField: "year",
+                                                valueYShow: "valueYTotalPercent",
+                                                legendValueText: "{valueY}",
+                                                tooltip: am5.Tooltip.new(root, {
+                                                    pointerOrientation: "horizontal",
+                                                    labelText: "[bold]{name}[/]\n{categoryX}: {valueY} students ({valueYTotalPercent.formatNumber('#.0')}%)"
+                                                })
+                                            }));
+
+                                            series.fills.template.setAll({
+                                                fillOpacity: 0.5,
+                                                visible: true
+                                            });
+
+                                            series.data.setAll(chartData);
+                                            series.appear(1000);
+                                        }
+
+                                        // Sort delivery modes alphabetically and create a series for each
+                                        const sortedDeliveryModes = Array.from(deliveryModes).sort();
+                                        sortedDeliveryModes.forEach(mode => {
+                                            createSeries(mode, mode);
+                                        });
+
+                                        // Make stuff animate on load
+                                        chart.appear(1000, 100);
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading data:', error);
+                                    });
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHART 5 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Fees by State</h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chartdiv5" class="chart-body">
+                                <!-- Fees by State -->
+                                <!-- Styles -->
+                                <style>
+                                #chartdiv5-inner {
+                                width: 100%;
+                                height: 260px;
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                am5.ready(function() {
+
+                                // Create root element
+                                // https://www.amcharts.com/docs/v5/getting-started/#Root_element 
+                                var root = am5.Root.new("chartdiv5-inner");
+
+                                // Create custom theme for better visibility
+                                var myTheme = am5.Theme.new(root);
+                                
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make legend labels bright and clear
+                                myTheme.rule("Label").setAll({
+                                    fill: am5.color(0xFFFFFF),
+                                    fontSize: 12,
+                                    fontWeight: "bold"
+                                });
+                                
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                    stroke: am5.color(0x555555),
+                                    strokeOpacity: 0.6
+                                });
+                                
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                    stroke: am5.color(0x444444),
+                                    strokeOpacity: 0.3
+                                });
+
+                                // Set themes
+                                // https://www.amcharts.com/docs/v5/concepts/themes/
+                                root.setThemes([
+                                am5themes_Animated.new(root),
+                                myTheme
+                                ]);
+
+                                // Create chart
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/
+                                var chart = root.container.children.push(am5xy.XYChart.new(root, {
+                                panX: true,
+                                panY: true,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                maxTooltipDistance: 0,
+                                pinchZoomX:true
+                                }));
+
+
+                                var date = new Date();
+                                date.setHours(0, 0, 0, 0);
+                                var value = 100;
+
+                                function generateData() {
+                                value = Math.round((Math.random() * 10 - 4.2) + value);
+                                am5.time.add(date, "day", 1);
+                                return {
+                                    date: date.getTime(),
+                                    value: value
+                                };
+                                }
+
+                                function generateDatas(count) {
+                                var data = [];
+                                for (var i = 0; i < count; ++i) {
+                                    data.push(generateData());
+                                }
+                                return data;
+                                }
+
+
+                                // Create axes
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+                                var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+                                categoryField: "year",
+                                renderer: am5xy.AxisRendererX.new(root, {
+                                    minorGridEnabled: true
+                                }),
+                                tooltip: am5.Tooltip.new(root, {})
+                                }));
+
+                                var yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+                                renderer: am5xy.AxisRendererY.new(root, {})
+                                }));
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+                                behavior: "none"
+                                }));
+                                cursor.lineY.set("visible", false);
+
+                                // Add scrollbar
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+                                chart.set("scrollbarX", am5.Scrollbar.new(root, {
+                                orientation: "horizontal"
+                                }));
+
+                                chart.set("scrollbarY", am5.Scrollbar.new(root, {
+                                orientation: "vertical"
+                                }));
+
+                                // Add legend
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+                                var legend = chart.rightAxesContainer.children.push(am5.Legend.new(root, {
+                                width: 200,
+                                paddingLeft: 15,
+                                height: am5.percent(100)
+                                }));
+
+                                // When legend item container is hovered, dim all the series except the hovered one
+                                legend.itemContainers.template.events.on("pointerover", function(e) {
+                                var itemContainer = e.target;
+
+                                // As series list is data of a legend, dataContext is series
+                                var series = itemContainer.dataItem.dataContext;
+
+                                chart.series.each(function(chartSeries) {
+                                    if (chartSeries != series) {
+                                    chartSeries.strokes.template.setAll({
+                                        strokeOpacity: 0.15,
+                                        stroke: am5.color(0x000000)
+                                    });
+                                    } else {
+                                    chartSeries.strokes.template.setAll({
+                                        strokeWidth: 3
+                                    });
+                                    }
+                                })
+                                })
+
+                                // When legend item container is unhovered, make all series as they are
+                                legend.itemContainers.template.events.on("pointerout", function(e) {
+                                var itemContainer = e.target;
+                                var series = itemContainer.dataItem.dataContext;
+
+                                chart.series.each(function(chartSeries) {
+                                    chartSeries.strokes.template.setAll({
+                                    strokeOpacity: 1,
+                                    strokeWidth: 1,
+                                    stroke: chartSeries.get("fill")
+                                    });
+                                });
+                                })
+
+                                legend.itemContainers.template.set("width", am5.p100);
+                                legend.valueLabels.template.setAll({
+                                width: am5.p100,
+                                textAlign: "right"
+                                });
+
+                                // Fetch data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                                        const jobTitleIndex = headers.findIndex(h => h.toLowerCase() === 'primary job title');
+                                        const basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base pay');
+                                        
+                                        // Group data by year and job title
+                                        const yearMap = {};
+                                        const jobTitles = new Set();
+                                        
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+                                            
+                                            if (yearIndex >= 0 && jobTitleIndex >= 0 && basePayIndex >= 0) {
+                                                const year = values[yearIndex];
+                                                const jobTitle = values[jobTitleIndex];
+                                                const basePay = parseFloat(values[basePayIndex]);
+                                                
+                                                if (year && jobTitle && !isNaN(basePay)) {
+                                                    if (!yearMap[year]) {
+                                                        yearMap[year] = {};
+                                                    }
+                                                    yearMap[year][jobTitle] = basePay;
+                                                    jobTitles.add(jobTitle);
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Convert to chart data format
+                                        const chartData = Object.keys(yearMap).sort().map(year => {
+                                            const row = { year: year };
+                                            jobTitles.forEach(jobTitle => {
+                                                row[jobTitle] = yearMap[year][jobTitle] || 0;
+                                            });
+                                            return row;
+                                        });
+                                        
+                                        xAxis.data.setAll(chartData);
+                                        
+                                        // Create a series for each job title
+                                        const sortedJobTitles = Array.from(jobTitles).sort();
+                                        sortedJobTitles.forEach((jobTitle, index) => {
+                                            const colors = [0xff8c00, 0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7, 0xdfe6e9, 0xa29bfe];
+                                            const series = chart.series.push(am5xy.LineSeries.new(root, {
+                                                name: jobTitle,
+                                                xAxis: xAxis,
+                                                yAxis: yAxis,
+                                                valueYField: jobTitle,
+                                                categoryXField: "year",
+                                                stroke: am5.color(colors[index % colors.length]),
+                                                fill: am5.color(colors[index % colors.length]),
+                                                tooltip: am5.Tooltip.new(root, {
+                                                    labelText: "{name}: ${valueY}"
+                                                })
+                                            }));
+                                            series.data.setAll(chartData);
+                                            series.appear(1000);
+                                        });
+                                        
+                                        // It's important to set legend data after all series are created
+                                        legend.data.setAll(chart.series.values);
+                                        
+                                        // Make stuff animate on load
+                                        chart.appear(1000, 100);
+                                    })
+                                    .catch(error => console.error('Error fetching data:', error));
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv5-inner"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHART 6 -->
+                    <div class="chart-wrapper">
+                        <div class="chart-title-row">
+                            <h3>Base Pay by Job Title</h3>
+                            <button class="maximize-btn" onclick="maximizeChart(this)">⛶</button>
+                        </div>
+                        <div class="chart">
+                            <div id="chart6" class="chart-body">
+                                <!-- Styles -->
+                                <style>
+                                #chartdiv6 {
+                                  width: 100%;
+                                  height: 260px;
+                                max-width: 100%
+                                }
+                                </style>
+
+                                <!-- Resources -->
+                                <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+                                <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+                                <!-- Chart code -->
+                                <script>
+                                am5.ready(function() {
+
+                                // Create root element
+                                // https://www.amcharts.com/docs/v5/getting-started/#Root_element
+                                var root = am5.Root.new("chartdiv6");
+
+                                const myTheme = am5.Theme.new(root);
+
+                                // Make axis labels bright and clear
+                                myTheme.rule("AxisLabel").setAll({
+                                  fill: am5.color(0xffffff),
+                                  fontSize: 12,
+                                  fontWeight: "bold"
+                                });
+
+                                // Make grid lines more visible
+                                myTheme.rule("Grid").setAll({
+                                  stroke: am5.color(0xffffff),
+                                  strokeOpacity: 0.6
+                                });
+
+                                myTheme.rule("Grid", ["minor"]).setAll({
+                                  stroke: am5.color(0xffffff),
+                                  strokeOpacity: 0.3
+                                });
+
+                                root.setThemes([
+                                  am5themes_Animated.new(root),
+                                  myTheme
+                                ]);
+
+                                var data = [];
+
+                                // Create chart
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/
+                                var chart = root.container.children.push(
+                                  am5xy.XYChart.new(root, {
+                                    focusable: true,
+                                    panX: true,
+                                    panY: true,
+                                    wheelX: "panX",
+                                    wheelY: "zoomX",
+                                    paddingLeft: 0
+                                  })
+                                );
+
+                                // Create axes
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+                                var xAxis = chart.xAxes.push(
+                                  am5xy.CategoryAxis.new(root, {
+                                    categoryField: "jobTitle",
+                                    renderer: am5xy.AxisRendererX.new(root, {
+                                      minorGridEnabled: true
+                                    }),
+                                    tooltip: am5.Tooltip.new(root, {})
+                                  })
+                                );
+
+                                var yAxis = chart.yAxes.push(
+                                  am5xy.ValueAxis.new(root, {
+                                    maxDeviation: 1,
+                                    renderer: am5xy.AxisRendererY.new(root, {
+                                      pan: "zoom"
+                                    })
+                                  })
+                                );
+
+                                var color = root.interfaceColors.get("background");
+
+                                // Add series
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+                                var series = chart.series.push(
+                                  am5xy.CandlestickSeries.new(root, {
+                                    turboMode: true,
+                                    fill: color,
+                                    calculateAggregates: true,
+                                    stroke: color,
+                                    name: "Base Pay",
+                                    xAxis: xAxis,
+                                    yAxis: yAxis,
+                                    valueYField: "basePay",
+                                    openValueYField: "open",
+                                    lowValueYField: "low",
+                                    highValueYField: "high",
+                                    categoryXField: "jobTitle",
+                                    lowValueYGrouped: "low",
+                                    highValueYGrouped: "high",
+                                    openValueYGrouped: "open",
+                                    valueYGrouped: "basePay",
+                                    legendValueText:
+                                      "open: {openValueY} low: {lowValueY} high: {highValueY} close: {valueY}",
+                                    legendRangeValueText: "{valueYClose}",
+                                    tooltip: am5.Tooltip.new(root, {
+                                      pointerOrientation: "horizontal",
+                                      labelText: "{jobTitle}\nopen: {openValueY}\nlow: {lowValueY}\nhigh: {highValueY}\nclose: {valueY}"
+                                    })
+                                  })
+                                );
+
+                                // Add cursor
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+                                var cursor = chart.set(
+                                  "cursor",
+                                  am5xy.XYCursor.new(root, {
+                                    xAxis: xAxis
+                                  })
+                                );
+                                cursor.lineY.set("visible", false);
+
+                                // Stack axes vertically
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/#Stacked_axes
+                                chart.leftAxesContainer.set("layout", root.verticalLayout);
+
+                                // Add scrollbar
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+                                var scrollbar = am5xy.XYChartScrollbar.new(root, {
+                                  orientation: "horizontal",
+                                  height: 50
+                                });
+                                chart.set("scrollbarX", scrollbar);
+
+                                var sbxAxis = scrollbar.chart.xAxes.push(
+                                  am5xy.CategoryAxis.new(root, {
+                                    categoryField: "jobTitle",
+                                    renderer: am5xy.AxisRendererX.new(root, {
+                                      minorGridEnabled: true,
+                                      strokeOpacity: 0
+                                    })
+                                  })
+                                );
+
+                                var sbyAxis = scrollbar.chart.yAxes.push(
+                                  am5xy.ValueAxis.new(root, {
+                                    renderer: am5xy.AxisRendererY.new(root, {})
+                                  })
+                                );
+
+                                var sbseries = scrollbar.chart.series.push(
+                                  am5xy.LineSeries.new(root, {
+                                    xAxis: sbxAxis,
+                                    yAxis: sbyAxis,
+                                    valueYField: "basePay",
+                                    categoryXField: "jobTitle"
+                                  })
+                                );
+
+                                // Add legend
+                                // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+                                var legend = yAxis.axisHeader.children.push(am5.Legend.new(root, {}));
+
+                                legend.data.push(series);
+
+                                legend.markers.template.setAll({
+                                  width: 10
+                                });
+
+                                legend.markerRectangles.template.setAll({
+                                  cornerRadiusTR: 0,
+                                  cornerRadiusBR: 0,
+                                  cornerRadiusTL: 0,
+                                  cornerRadiusBL: 0
+                                });
+
+                                // Fetch and process data from GitHub
+                                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv")
+                                    .then(response => response.text())
+                                    .then(csvText => {
+                                        // Parse CSV
+                                        const lines = csvText.split('\n');
+                                        const headers = lines[0].split(',').map(h => h.trim());
+                                        const jobTitleIndex = headers.findIndex(h => h.toLowerCase() === 'primary job title');
+                                        const basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base pay');
+                                        
+                                        console.log('Headers:', headers);
+                                        console.log('Job Title Index:', jobTitleIndex, 'Base Pay Index:', basePayIndex);
+                                        
+                                        // Group by job title and collect all base pay values
+                                        const jobMap = {};
+                                        for (let i = 1; i < lines.length; i++) {
+                                            if (lines[i].trim() === '') continue;
+                                            const values = lines[i].split(',').map(v => v.trim());
+                                            
+                                            if (jobTitleIndex >= 0 && basePayIndex >= 0) {
+                                                const jobTitle = values[jobTitleIndex];
+                                                const basePay = parseFloat(values[basePayIndex]);
+                                                
+                                                if (jobTitle && !isNaN(basePay)) {
+                                                    if (!jobMap[jobTitle]) {
+                                                        jobMap[jobTitle] = [];
+                                                    }
+                                                    jobMap[jobTitle].push(basePay);
+                                                }
+                                            }
+                                        }
+                                        
+                                        console.log('Grouped data:', jobMap);
+                                        
+                                        // Convert to chart data format with box plot data (min, Q1, median, Q3, max)
+                                        const chartData = Object.keys(jobMap)
+                                            .sort()
+                                            .map(jobTitle => {
+                                                const values = jobMap[jobTitle].sort((a, b) => a - b);
+                                                const min = values[0];
+                                                const max = values[values.length - 1];
+                                                const q1Index = Math.floor(values.length * 0.25);
+                                                const medianIndex = Math.floor(values.length * 0.5);
+                                                const q3Index = Math.floor(values.length * 0.75);
+                                                
+                                                return {
+                                                    jobTitle: jobTitle,
+                                                    basePay: values[medianIndex],
+                                                    open: values[q1Index],
+                                                    low: min,
+                                                    high: max
+                                                };
+                                            });
+                                        
+                                        console.log('Chart data:', chartData);
+                                        
+                                        // Update chart
+                                        if (chartData.length > 0) {
+                                            xAxis.data.setAll(chartData);
+                                            series.data.setAll(chartData);
+                                            sbxAxis.data.setAll(chartData);
+                                            sbseries.data.setAll(chartData);
+                                            series.appear(1000);
+                                            chart.appear(1000, 100);
+                                        } else {
+                                            console.error('No valid data found');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading data:', error);
+                                    });
+
+                                // Make stuff animate on load
+                                // https://www.amcharts.com/docs/v5/concepts/animations/
+                                series.appear(1000);
+                                chart.appear(1000, 100);
+
+                                }); // end am5.ready()
+                                </script>
+
+                                <!-- HTML -->
+                                <div id="chartdiv6"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        </div>
+
+        <main id="datasetView" style="display: none;">
+        <div class="dashboard-content">
+            <div class="dataset-view-container">
+                <h2 class="dataset-view-title">Dataset View</h2>
+                    
+                    <!-- Dataset Selector -->
+                    <div class="dataset-selector-container">
+                        <button onclick="switchDataset(1)" id="datasetBtn1" class="dataset-button active">Dataset 1</button>
+                        <button onclick="switchDataset(2)" id="datasetBtn2" class="dataset-button">Dataset 2</button>
+                        <button onclick="switchDataset(3)" id="datasetBtn3" class="dataset-button">Dataset 3</button>
+                    </div>
+
+                    <!-- Dataset Tables -->
+                    <div id="dataset1Container" class="dataset-container">
+                        <table id="dataset1Table" class="dataset-table">
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="dataset2Container" class="dataset-container" style="display: none;">
+                        <table id="dataset2Table" class="dataset-table">
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="dataset3Container" class="dataset-container" style="display: none;">
+                        <table id="dataset3Table" class="dataset-table">
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Dashboard. All rights reserved. | Last updated: December 27, 2025</p>
+        </footer>
+
+        <script>
+            // Fetch and display statistics
+            function loadStatistics() {
+                fetch('https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv')
+                    .then(response => response.text())
+                    .then(csvText => {
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                        const subjectIndex = headers.findIndex(h => h.toLowerCase() === 'subject');
+                        const passRateIndex = headers.findIndex(h => h.toLowerCase() === 'pass_rate');
+                        const failRateIndex = headers.findIndex(h => h.toLowerCase() === 'fail_rate');
+                        
+                        let totalStudents = 0;
+                        let subjects = new Set();
+                        let totalPassRate = 0;
+                        let totalFailRate = 0;
+                        let rowCount = 0;
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const values = lines[i].split(',').map(v => v.trim());
+                            rowCount++;
+                            
+                            // Sum students
+                            if (studentsIndex >= 0) {
+                                const studentCount = parseInt(values[studentsIndex]);
+                                if (!isNaN(studentCount)) {
+                                    totalStudents += studentCount;
+                                }
+                            }
+                            
+                            // Count unique subjects
+                            if (subjectIndex >= 0) {
+                                subjects.add(values[subjectIndex]);
+                            }
+                            
+                            // Sum pass rates
+                            if (passRateIndex >= 0) {
+                                const passRate = parseFloat(values[passRateIndex]);
+                                if (!isNaN(passRate)) {
+                                    totalPassRate += passRate;
+                                }
+                            }
+                            
+                            // Sum fail rates
+                            if (failRateIndex >= 0) {
+                                const failRate = parseFloat(values[failRateIndex]);
+                                if (!isNaN(failRate)) {
+                                    totalFailRate += failRate;
+                                }
+                            }
+                        }
+                        
+                        // Calculate averages
+                        const avgPassRate = rowCount > 0 ? (totalPassRate / rowCount).toFixed(2) : 0;
+                        const avgFailRate = rowCount > 0 ? (totalFailRate / rowCount).toFixed(2) : 0;
+                        const numSubjects = subjects.size;
+                        const formattedTotal = totalStudents.toLocaleString();
+                        
+                        // Update all displays
+                        document.querySelectorAll('#totalStudentsValue').forEach(el => el.textContent = formattedTotal);
+                        document.querySelectorAll('#totalSubjectsValue').forEach(el => el.textContent = numSubjects);
+                        document.querySelectorAll('#avgPassRateValue').forEach(el => el.textContent = avgPassRate + '%');
+                        document.querySelectorAll('#avgFailRateValue').forEach(el => el.textContent = avgFailRate + '%');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching statistics:', error);
+                        document.querySelectorAll('#totalStudentsValue').forEach(el => el.textContent = 'Error');
+                        document.querySelectorAll('#totalSubjectsValue').forEach(el => el.textContent = 'Error');
+                        document.querySelectorAll('#avgPassRateValue').forEach(el => el.textContent = 'Error');
+                        document.querySelectorAll('#avgFailRateValue').forEach(el => el.textContent = 'Error');
+                    });
+            }
+            
+            // Load statistics when page loads
+            window.addEventListener('DOMContentLoaded', () => {
+                loadStatistics();
+                loadAverageBasePay();
+                loadHighestPayingRole();
+                // Initialize year displays
+                const chart2Year = document.getElementById('chart2YearFilter').value;
+                const chart3Year = document.getElementById('chart3YearFilter').value;
+                document.getElementById('chart2YearDisplay').textContent = `- ${chart2Year}`;
+                document.getElementById('chart3YearDisplay').textContent = `- ${chart3Year}`;
+            });
+            
+            // Fetch and calculate average base pay from dataset 3
+            function loadAverageBasePay() {
+                fetch('https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv')
+                    .then(response => response.text())
+                    .then(csvText => {
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        console.log('Salary CSV Headers:', headers); // Debug: show column names
+                        // Try different column name variations
+                        let basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base_pay');
+                        if (basePayIndex === -1) {
+                            basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base pay');
+                        }
+                        if (basePayIndex === -1) {
+                            basePayIndex = 2; // Default to index 2 if not found
+                        }
+                        console.log('Base Pay Index:', basePayIndex); // Debug: show if column found
+                        
+                        let totalBasePay = 0;
+                        let rowCount = 0;
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const values = lines[i].split(',').map(v => v.trim());
+                            rowCount++;
+                            
+                            if (basePayIndex >= 0) {
+                                const basePay = parseFloat(values[basePayIndex]);
+                                if (!isNaN(basePay)) {
+                                    totalBasePay += basePay;
+                                }
+                            }
+                        }
+                        
+                        console.log('Total Base Pay:', totalBasePay, 'Row Count:', rowCount); // Debug
+                        const avgBasePay = rowCount > 0 ? (totalBasePay / rowCount).toFixed(2) : 0;
+                        const formattedBasePay = '$' + parseFloat(avgBasePay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        
+                        document.querySelectorAll('#avgBasePayValue').forEach(el => el.textContent = formattedBasePay);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching average base pay:', error);
+                        document.querySelectorAll('#avgBasePayValue').forEach(el => el.textContent = 'Error');
+                    });
+            }
+            
+            // Fetch and find highest paying role from dataset 3
+            function loadHighestPayingRole() {
+                fetch('https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv')
+                    .then(response => response.text())
+                    .then(csvText => {
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const jobTitleIndex = headers.findIndex(h => h.toLowerCase() === 'primary job title');
+                        let basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base_pay');
+                        if (basePayIndex === -1) {
+                            basePayIndex = headers.findIndex(h => h.toLowerCase() === 'base pay');
+                        }
+                        if (basePayIndex === -1) {
+                            basePayIndex = 2;
+                        }
+                        
+                        let highestPay = 0;
+                        let highestRole = '';
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const values = lines[i].split(',').map(v => v.trim());
+                            
+                            if (basePayIndex >= 0) {
+                                const basePay = parseFloat(values[basePayIndex]);
+                                if (!isNaN(basePay) && basePay > highestPay) {
+                                    highestPay = basePay;
+                                    if (jobTitleIndex >= 0) {
+                                        highestRole = values[jobTitleIndex];
+                                    }
+                                }
+                            }
+                        }
+                        
+                        const displayRole = highestRole ? highestRole + ' (' + '$' + highestPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : 'N/A';
+                        document.querySelectorAll('#highestPayingRoleValue').forEach(el => el.textContent = displayRole);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching highest paying role:', error);
+                        document.querySelectorAll('#highestPayingRoleValue').forEach(el => el.textContent = 'Error');
+                    });
+            }
+
+            function toggleFilterHeader() {
+                const filterHeader = document.getElementById('chartFiltersHeader');
+                const toggleBtn = document.getElementById('filterToggleBtn');
+                
+                if (filterHeader.classList.contains('show')) {
+                    filterHeader.classList.remove('show');
+                    filterHeader.classList.add('hide');
+                    toggleBtn.style.transform = 'rotate(180deg)';
+                    setTimeout(() => {
+                        filterHeader.style.display = 'none';
+                    }, 300);
+                } else {
+                    filterHeader.style.display = 'flex';
+                    filterHeader.classList.remove('hide');
+                    filterHeader.classList.add('show');
+                    toggleBtn.style.transform = 'rotate(0deg)';
+                }
+            }
+
+            function switchViewMode(mode) {
+                const graphsView = document.getElementById('graphsView');
+                const datasetView = document.getElementById('datasetView');
+                const chartsFilterHeader = document.getElementById('chartFiltersHeader');
+                const filterToggleBtn = document.getElementById('filterToggleBtn');
+                const mainWrapper = document.querySelector('.main-wrapper');
+                
+                if (mode === 'graphs') {
+                    graphsView.style.display = 'block';
+                    datasetView.style.display = 'none';
+                    mainWrapper.style.display = 'flex';
+                    filterToggleBtn.style.display = 'inline-block';
+                    chartsFilterHeader.style.display = 'none';
+                    chartsFilterHeader.classList.remove('show', 'hide');
+                    filterToggleBtn.style.transform = 'rotate(180deg)';
+                } else if (mode === 'dataset') {
+                    graphsView.style.display = 'none';
+                    datasetView.style.display = 'block';
+                    mainWrapper.style.display = 'none';
+                    filterToggleBtn.style.display = 'none';
+                    chartsFilterHeader.style.display = 'none';
+                    // Load dataset 1 by default
+                    switchDataset(1);
+                }
+            }
+
+            function exportCharts() {
+                const graphsView = document.getElementById('graphsView');
+                const datasetView = document.getElementById('datasetView');
+                
+                // Check which view is active
+                if (graphsView.style.display === 'block') {
+                    // Export charts as image
+                    exportChartsAsImage();
+                } else if (datasetView.style.display === 'block') {
+                    // Export current dataset as CSV
+                    exportDatasetAsCSV();
+                }
+            }
+
+            function exportChartsAsImage() {
+                const chartContainer = document.querySelector('.chart-container');
+                
+                if (!chartContainer) {
+                    alert('No charts found to export');
+                    return;
+                }
+
+                // Use html2canvas to capture the charts
+                html2canvas(chartContainer, {
+                    backgroundColor: '#1a1a1a',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: true,
+                    width: chartContainer.offsetWidth,
+                    height: chartContainer.offsetHeight
+                }).then(canvas => {
+                    // Create a download link
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = 'Dashboard-Charts-' + new Date().toISOString().split('T')[0] + '.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }).catch(error => {
+                    console.error('Error exporting charts:', error);
+                    alert('Error exporting charts: ' + error.message);
+                });
+            }
+
+            function exportDatasetAsCSV() {
+                const urls = {
+                    1: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv',
+                    2: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_fees.csv',
+                    3: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv'
+                };
+
+                const datasetNames = {
+                    1: 'Courses',
+                    2: 'Fees',
+                    3: 'Salaries'
+                };
+
+                const currentDataset = window.currentDataset || 1;
+                const url = urls[currentDataset];
+                const datasetName = datasetNames[currentDataset];
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        // Create a blob from the CSV text
+                        const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        const csvUrl = URL.createObjectURL(blob);
+                        
+                        link.href = csvUrl;
+                        link.download = datasetName + '-' + new Date().toISOString().split('T')[0] + '.csv';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(csvUrl);
+                    })
+                    .catch(error => {
+                        console.error('Error exporting dataset:', error);
+                        alert('Error exporting dataset: ' + error.message);
+                    });
+            }
+
+            let loadedDatasets = {};
+            let currentDataset = 1;
+
+            function switchDataset(datasetNum) {
+                // Track current dataset
+                window.currentDataset = datasetNum;
+                
+                // Hide all containers
+                document.getElementById('dataset1Container').style.display = 'none';
+                document.getElementById('dataset2Container').style.display = 'none';
+                document.getElementById('dataset3Container').style.display = 'none';
+
+                // Update button styles
+                document.getElementById('datasetBtn1').classList.remove('active');
+                document.getElementById('datasetBtn2').classList.remove('active');
+                document.getElementById('datasetBtn3').classList.remove('active');
+
+                // Highlight active button
+                document.getElementById('datasetBtn' + datasetNum).classList.add('active');
+
+                // Show selected container
+                document.getElementById('dataset' + datasetNum + 'Container').style.display = 'block';
+
+                // Load data if not already loaded
+                if (!loadedDatasets['dataset' + datasetNum]) {
+                    loadDataset(datasetNum);
+                }
+            }
+
+            function loadDataset(datasetNum) {
+                const urls = {
+                    1: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv',
+                    2: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_fees.csv',
+                    3: 'https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_salaries.csv'
+                };
+
+                const tableId = 'dataset' + datasetNum + 'Table';
+
+                fetch(urls[datasetNum])
+                    .then(response => response.text())
+                    .then(csvText => {
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        
+                        // Create table header
+                        const thead = document.querySelector('#' + tableId + ' thead');
+                        const headerRow = thead.querySelector('tr');
+                        headerRow.innerHTML = '';
+                        headers.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            th.style.padding = '10px';
+                            th.style.border = '1px solid #555';
+                            th.style.textAlign = 'left';
+                            headerRow.appendChild(th);
+                        });
+
+                        // Create table body
+                        const tbody = document.querySelector('#' + tableId + ' tbody');
+                        tbody.innerHTML = '';
+                        
+                        // Limit to first 100 rows for performance
+                        const rowLimit = Math.min(100, lines.length - 1);
+                        for (let i = 1; i <= rowLimit; i++) {
+                            if (lines[i].trim() === '') continue;
+                            
+                            const values = lines[i].split(',').map(v => v.trim());
+                            const tr = document.createElement('tr');
+                            tr.style.borderBottom = '1px solid #333';
+                            
+                            values.forEach((value, index) => {
+                                const td = document.createElement('td');
+                                td.textContent = value;
+                                td.style.padding = '10px';
+                                td.style.border = '1px solid #555';
+                                tr.appendChild(td);
+                            });
+                            
+                            tbody.appendChild(tr);
+                        }
+
+                        // Mark dataset as loaded
+                        loadedDatasets['dataset' + datasetNum] = true;
+                    })
+                    .catch(error => {
+                        console.error('Error loading dataset:', error);
+                        const tbody = document.querySelector('#' + tableId + ' tbody');
+                        tbody.innerHTML = '<tr><td style="padding: 10px; border: 1px solid #555;">Error loading data</td></tr>';
+                    });
+            }
+        </script>
+
+        <!-- CHART MAXIMIZE LOGIC START -->
+        <script>
+            function maximizeChart(button) {
+                const chartWrapper = button.closest('.chart-wrapper');
+                const container = document.querySelector('.chart-container');
+                const allWrappers = document.querySelectorAll('.chart-wrapper');
+                
+                // Mark as maximized
+                chartWrapper.classList.add('maximized');
+                container.classList.add('maximized');
+                
+                // Hide other charts
+                allWrappers.forEach(wrapper => {
+                    if (wrapper !== chartWrapper) {
+                        wrapper.classList.add('hidden');
+                    }
+                });
+                
+                // Replace maximize button with minimize button
+                const newBtn = document.createElement('button');
+                newBtn.className = 'minimize-btn';
+                newBtn.textContent = '⬅ Back';
+                newBtn.onclick = function() {
+                    minimizeChart();
+                };
+                button.replaceWith(newBtn);
+            }
+            
+            function minimizeChart() {
+                const chartWrapper = document.querySelector('.chart-wrapper.maximized');
+                const container = document.querySelector('.chart-container');
+                const allWrappers = document.querySelectorAll('.chart-wrapper');
+                
+                // Remove maximized state
+                chartWrapper.classList.remove('maximized');
+                container.classList.remove('maximized');
+                
+                // Show all charts
+                allWrappers.forEach(wrapper => {
+                    wrapper.classList.remove('hidden');
+                });
+                
+                // Replace minimize button with maximize button
+                const newBtn = document.createElement('button');
+                newBtn.className = 'maximize-btn';
+                newBtn.textContent = '⛶';
+                newBtn.onclick = function() {
+                    maximizeChart(this);
+                };
+                document.querySelector('.minimize-btn').replaceWith(newBtn);
+            }
+
+            // Filter Chart 2 by selected year
+            function filterChart2ByYear() {
+                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                    .then(response => response.text())
+                    .then(csvText => {
+                        // Parse CSV
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                        const subjectIndex = headers.findIndex(h => h.toLowerCase() === 'subject');
+                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                        const failRateIndex = headers.findIndex(h => h.toLowerCase() === 'fail_rate');
+                        
+                        // Get selected year from dropdown
+                        const selectedYear = document.getElementById('chart2YearFilter').value;
+                        document.getElementById('chart2YearDisplay').textContent = `- ${selectedYear}`;
+                        console.log('Filtering for year:', selectedYear);
+                        
+                        // Group by subject and sum failed students for selected year
+                        const subjectMap = {};
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const values = lines[i].split(',').map(v => v.trim());
+                            
+                            if (yearIndex >= 0 && subjectIndex >= 0 && studentsIndex >= 0 && failRateIndex >= 0) {
+                                const year = values[yearIndex];
+                                const subject = values[subjectIndex];
+                                const students = parseInt(values[studentsIndex]);
+                                const failRate = parseFloat(values[failRateIndex]);
+                                
+                                if (year === selectedYear && subject && !isNaN(students) && !isNaN(failRate)) {
+                                    const failedStudents = students * failRate;
+                                    subjectMap[subject] = (subjectMap[subject] || 0) + failedStudents;
+                                }
+                            }
+                        }
+                        
+                        // Convert to chart data format
+                        let chartData = Object.keys(subjectMap)
+                            .map(subject => ({
+                                country: subject,
+                                value: Math.round(subjectMap[subject])
+                            }));
+                        
+                        // Check if filter checkbox is checked
+                        const filterCheckbox = document.getElementById('chart2FilterToggle');
+                        if (filterCheckbox && filterCheckbox.checked) {
+                            // Sort by value descending (highest to lowest)
+                            chartData.sort((a, b) => b.value - a.value);
+                        } else {
+                            // Sort alphabetically by subject
+                            chartData.sort((a, b) => a.country.localeCompare(b.country));
+                        }
+                        
+                        console.log('Chart data for year', selectedYear, ':', chartData);
+                        
+                        // Update chart using stored references
+                        if (chart2Data.xAxis && chart2Data.series) {
+                            chart2Data.xAxis.data.setAll(chartData);
+                            chart2Data.series.data.setAll(chartData);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+
+            // Filter Chart 3 by selected year
+            function filterChart3ByYear() {
+                fetch("https://raw.githubusercontent.com/Ahmad0x7/DV_proj/main/clean_courses.csv")
+                    .then(response => response.text())
+                    .then(csvText => {
+                        // Parse CSV
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const yearIndex = headers.findIndex(h => h.toLowerCase() === 'year');
+                        const subjectIndex = headers.findIndex(h => h.toLowerCase() === 'subject');
+                        const studentsIndex = headers.findIndex(h => h.toLowerCase() === 'students');
+                        const passRateIndex = headers.findIndex(h => h.toLowerCase() === 'pass_rate');
+                        
+                        // Get selected year from dropdown
+                        const selectedYear = document.getElementById('chart3YearFilter').value;
+                        document.getElementById('chart3YearDisplay').textContent = `- ${selectedYear}`;
+                        console.log('Filtering for year:', selectedYear);
+                        
+                        // Group by subject and sum passed students for selected year
+                        const subjectMap = {};
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const values = lines[i].split(',').map(v => v.trim());
+                            
+                            if (yearIndex >= 0 && subjectIndex >= 0 && studentsIndex >= 0 && passRateIndex >= 0) {
+                                const year = values[yearIndex];
+                                const subject = values[subjectIndex];
+                                const students = parseInt(values[studentsIndex]);
+                                const passRate = parseFloat(values[passRateIndex]);
+                                
+                                if (year === selectedYear && subject && !isNaN(students) && !isNaN(passRate)) {
+                                    const passedStudents = students * passRate;
+                                    subjectMap[subject] = (subjectMap[subject] || 0) + passedStudents;
+                                }
+                            }
+                        }
+                        
+                        // Convert to chart data format
+                        let chartData = Object.keys(subjectMap)
+                            .map(subject => ({
+                                country: subject,
+                                value: Math.round(subjectMap[subject])
+                            }));
+                        
+                        // Check if filter checkbox is checked
+                        const filterCheckbox = document.getElementById('chart3FilterToggle');
+                        if (filterCheckbox && filterCheckbox.checked) {
+                            // Sort by value descending (highest to lowest)
+                            chartData.sort((a, b) => b.value - a.value);
+                        } else {
+                            // Sort alphabetically by subject
+                            chartData.sort((a, b) => a.country.localeCompare(b.country));
+                        }
+                        
+                        console.log('Chart data for year', selectedYear, ':', chartData);
+                        
+                        // Update chart using stored references
+                        if (chart3Data.xAxis && chart3Data.series) {
+                            chart3Data.xAxis.data.setAll(chartData);
+                            chart3Data.series.data.setAll(chartData);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+        </script>
+        <!-- CHART MAXIMIZE LOGIC END -->
+    </body>
+</html>
