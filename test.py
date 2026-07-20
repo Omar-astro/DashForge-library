@@ -28,11 +28,13 @@ fig6 = px.treemap(df, path=[px.Constant('world'), 'continent', 'country'], value
                   color='lifeExp', hover_data=['iso_alpha'])
 
 dashboard = Dashboard()
-dashboard.set_bg_color(line="#FF1100DD",
-                       behindchart="#DDDDDDB5",
-                       outterChart="#1a1a1a",
-                       innerChart="#1a1a1a",
-                       ChartText="#ffffff")
+# dashboard.set_bg_color(line="#FF1100DD",
+#                        behindchart="#DDDDDDB5",
+#                        outterChart="#1a1a1a",
+#                        innerChart="#1a1a1a",
+#                        ChartText="#ffffff")
+dashboard.set_logo("Logo23.png")
+dashboard.set_theme("dark")
 dashboard.set_title("Dashboard")
 dashboard.add_chart(fig1)
 dashboard.add_chart(fig2)
@@ -45,7 +47,16 @@ dashboard.add_chart(fig3)
 dashboard.add_kpi("KPI 2", 200)
 dashboard.add_kpi("Total profit", 50000)
 dashboard.add_kpi("KPI 3", 300213)
-dashboard.set_chart_titles(["Parallel Coordinates", "Scatter Plot", "Area Chart", "Funnel Chart", "Pie Chart", "Treemap", "Area Chart 2"])
+# dashboard.set_font_family("Bodoni MT")
+dashboard.set_chart_titles([None, "Scatter Plot", "Area Chart", "Funnel Chart", "Pie Chart", "Treemap", "Area Chart 2"])
+dashboard.set_chart_subtitles(["This is a parallel coordinates chart", 
+                               None,
+                               None,
+                               "This is an area chart", 
+                               "This is a funnel chart", 
+                               "This is a pie chart", 
+                               "This is a treemap chart", 
+                               "This is an area chart 2"])
 dashboard.preset("preset1")
 dashboard.build_dashboard()
 dashboard.run()

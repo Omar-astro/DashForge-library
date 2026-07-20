@@ -3,10 +3,10 @@
 ## Dashboard customization
 
 - [D] Dedicated color-customization section for chart areas, dashboard background, KPI backgrounds, header, footer, and text.
-- [ ] Built-in themes (for example, light and dark) so users can start from a preset instead of configuring every color.
-- [ ] Logo support.
-- [ ] Optional subtitle displayed directly below the dashboard title.
-- [ ] Font selection.
+- [D] Built-in themes (for example, light and dark) so users can start from a preset instead of configuring every color.
+- [D] Logo support.
+- [D] Optional subtitle displayed directly below the dashboard title.
+- [D] Font selection.
 - [ ] Customizable footer content.
 - [ ] Optional timestamp in the footer (`True` / `False`).
 - [ ] Hide the toolbar when desired.

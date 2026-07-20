@@ -2,19 +2,25 @@ from copy import deepcopy
 import plotly.express as px
 from plotly.graph_objects import Figure
 from dash import Dash, Input, Output, State, dcc, html
+import os
+from flask import send_from_directory
 from typing import Literal
 from param import Color
 
 class Dashboard():
     '''Start by Initalizing the main variables of the dashboard'''
     def __init__(self):
-        self.line_colors = "#ff8c00"
         self.Title = None
+        self.Logo = None
+        self.FontFamily = "Arial, sans-serif"
         self.charts = []
         self.kpi = {}
         self.preset_choosen = "preset1"
         self.chart_titles = []
+        self.chart_subtitles = []
         self._allowed_presets = {"preset1"}
+        #region color initialization
+        self.line_colors = "#ff8c00"
         self.chartBG = "#1a1a1a"
         self.outterchart_bg = "#1a1a1a"
         self.innerChart_bg = "#1a1a1a"
@@ -26,6 +32,7 @@ class Dashboard():
         self.chartArea_BG_color = "#2d2d2d"
         self.maxbtn_color = "#1a1a1a"
         self.ChartBorder_color = "#3a3a3a"
+        #endregion
 
     def set_bg_color(self, line: Color = "#ff8c00",
                      behindchart: Color = "#1a1a1a",
@@ -58,6 +65,46 @@ class Dashboard():
         '''Set the titles for the charts'''
         self.chart_titles = titles
 
+    def set_chart_subtitles(self, subtitles: list):
+        '''Set the subtitles for the charts'''
+        self.chart_subtitles = subtitles
+
+    def set_font_family(self, font_family: str):
+        '''Set the font family for the dashboard'''
+        self.FontFamily = font_family
+
+    def set_theme(self, theme: Literal["dark", "light"]):
+        '''Set the theme of the dashboard'''
+        if theme not in ["dark", "light"]:
+            raise ValueError("Theme must be 'dark' or 'light'")
+        if theme == "dark":
+            self.set_bg_color(behindchart="#1a1a1a",
+                              outterChart="#1a1a1a",
+                              innerChart="#1a1a1a",
+                              HeaderBG="#2d2d2d",
+                              KPIBackgroundArea="#2d2d2d",
+                              KPICard="#1a1a1a",
+                              ChartAreaBackground="#2d2d2d",
+                              MaximizeButton="#1a1a1a",
+                              ChartBorder="#3a3a3a",
+                              ChartText="#ffffff")
+        else:
+            # Light theme: contrasting/inverted colors from the dark theme
+            self.set_bg_color(
+                line="#ff8c00",  # keep accent color
+                behindchart="#ffffff",
+                outterChart="#ffffff",
+                innerChart="#ffffff",
+                ChartText="#000000",
+                HeaderBG="#f5f5f5",
+                KPIBackgroundArea="#f5f5f5",
+                KPICard="#ffffff",
+                KPIText="#000000",
+                ChartAreaBackground="#ffffff",
+                MaximizeButton="#ffffff",
+                ChartBorder="#cccccc",
+            )
+
     def set_title(self, title:str):
         '''Set the title of the dashboard'''
         self.Title = title
@@ -65,6 +112,10 @@ class Dashboard():
     def add_chart(self, chart: Figure):
         '''Add a chart to the dashboard'''
         self.charts.append(chart)
+    
+    def set_logo(self, logo_path:str):
+        '''Set the logo of the dashboard'''
+        self.Logo = logo_path
 
     def add_kpi(self, kpi_name, kpi_value):
         '''Add a KPI to the dashboard'''
@@ -86,12 +137,31 @@ class Dashboard():
     def __layout1(self):
         self.app = Dash(__name__)
         self.app.title = self.Title or "Dashboard"
+# Serve project-root files at /files/<filename> so plain paths like "Logo.png" work
+        @self.app.server.route('/files/<path:filename>')
+        def _serve_project_file(filename):
+            return send_from_directory(os.getcwd(), filename)
 #"#1a1a1a"
         dashboard_color = self.chartBG
         accent_color = self.line_colors
 
         def chunk_charts(charts, chunk_size=3):
             return [charts[index:index + chunk_size] for index in range(0, len(charts), chunk_size)]
+
+        # Ensure multi-word font family names are quoted for valid CSS
+        def _quote_font_family(ff: str) -> str:
+            parts = [p.strip() for p in ff.split(',') if p is not None]
+            out = []
+            for p in parts:
+                if (p.startswith("'") and p.endswith("'")) or (p.startswith('"') and p.endswith('"')):
+                    out.append(p)
+                elif ' ' in p:
+                    out.append(f"'{p}'")
+                else:
+                    out.append(p)
+            return ", ".join(out)
+
+        safe_font_family = _quote_font_family(self.FontFamily)
 
         self.app.index_string = f"""
         <!DOCTYPE html>
@@ -111,7 +181,7 @@ class Dashboard():
                     body {{
                         min-height: 100vh;
                         background-color: {dashboard_color};
-                        font-family: Arial, sans-serif;
+                        font-family: {safe_font_family};
                     }}
 
                     .dashboard-shell {{
@@ -124,12 +194,28 @@ class Dashboard():
                         background-color: {self.headerBG_color};
                         border-bottom: 3px solid {accent_color};
                         padding: 14px 30px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                    }}
+
+                    .dashboard-logo {{
+                        height: 40px;
+                        width: auto;
+                        display: block;
                     }}
 
                     .dashboard-header h1 {{
                         color: {accent_color};
                         font-size: 32px;
                         line-height: 1.2;
+                    }}
+
+                    .chart-subtitle {{
+                        color: {self.chat_text_color};
+                        font-size: 12px;
+                        margin: 0;
+                        opacity: 0.9;
                     }}
 
                     .dashboard-main {{
@@ -404,12 +490,39 @@ class Dashboard():
                 row_cards = []
 
                 for index, chart in enumerate(row_charts, start=i + 1):
+                    # Determine title and optional subtitle for this chart.
+                    # If an entry exists but is explicitly None, skip rendering for that entry.
+                    if index <= len(self.chart_titles):
+                        title_entry = self.chart_titles[index - 1]
+                        title_text = None if title_entry is None else title_entry
+                    else:
+                        # no explicit title provided -> use default
+                        title_text = f"Chart {index}"
+
+                    if index <= len(self.chart_subtitles):
+                        subtitle_entry = self.chart_subtitles[index - 1]
+                        subtitle_text = None if subtitle_entry is None else subtitle_entry
+                    else:
+                        subtitle_text = None
+
+                    # Build title block, omitting elements when None
+                    title_children = []
+                    if title_text is not None:
+                        title_children.append(html.H3(title_text, className="chart-title"))
+                    if subtitle_text is not None:
+                        title_children.append(html.Div(subtitle_text, className="chart-subtitle"))
+                    if not title_children:
+                        # maintain layout spacing when both omitted
+                        title_children = [html.Div()]
+
+                    title_block = html.Div(title_children)
+
                     row_cards.append(
                         html.Div(
                             [
                                 html.Div(
                                     [
-                                        html.H3(self.chart_titles[index - 1] if index <= len(self.chart_titles) else f"Chart {index}", className="chart-title"),
+                                        title_block,
                                         html.Button(
                                             "⛶",
                                             id=f"chart-toggle-{index}",
@@ -455,10 +568,32 @@ class Dashboard():
                 )
             ]
 
+        # Build header with optional logo on the top-left
+        if self.Logo:
+            # Use provided path, but map plain filenames to the /files/ route
+            logo_src = self.Logo
+            if not (
+                logo_src.startswith("http://")
+                or logo_src.startswith("https://")
+                or logo_src.startswith("/")
+                or logo_src.startswith("data:")
+            ):
+                logo_src = f"/files/{logo_src}"
+
+            header_comp = html.Header(
+                [
+                    html.Img(src=logo_src, alt="Logo", className="dashboard-logo"),
+                    html.H1(self.Title or "Dashboard"),
+                ],
+                className="dashboard-header",
+            )
+        else:
+            header_comp = html.Header(html.H1(self.Title or "Dashboard"), className="dashboard-header")
+
         self.app.layout = html.Div(
             [
                 dcc.Store(id="maximized-chart"),
-                html.Header(html.H1(self.Title or "Dashboard"), className="dashboard-header"),
+                header_comp,
                 html.Div(
                     [
                         html.Aside(insights, className="insights-sidebar") if insights else None,
