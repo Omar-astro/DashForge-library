@@ -13,9 +13,10 @@ class Dashboard():
         self.Title = None
         self.Logo = None
         self.FontFamily = "Arial, sans-serif"
-        self.charts = []
-        self.kpi = {}
         self.preset_choosen = "preset1"
+        self.footer_text = None
+        self.kpi = {}
+        self.charts = []
         self.chart_titles = []
         self.chart_subtitles = []
         self._allowed_presets = {"preset1"}
@@ -72,6 +73,10 @@ class Dashboard():
     def set_font_family(self, font_family: str):
         '''Set the font family for the dashboard'''
         self.FontFamily = font_family
+
+    def set_footer_text(self, footer_text: str):
+        '''Set the footer text for the dashboard'''
+        self.footer_text = footer_text
 
     def set_theme(self, theme: Literal["dark", "light"]):
         '''Set the theme of the dashboard'''
@@ -208,6 +213,23 @@ class Dashboard():
                     .dashboard-header h1 {{
                         color: {accent_color};
                         font-size: 32px;
+                        line-height: 1.2;
+                    }}
+
+                    .dashboard-footer {{
+                        background-color: {self.headerBG_color};
+                        border-top: 3px solid {accent_color};
+                        padding: 14px 30px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        align-items: center;
+                        justify-content: center;
+                    }}
+
+                    .dashboard-footer-text {{
+                        color: {accent_color};
+                        font-size: 28px;
                         line-height: 1.2;
                     }}
 
@@ -607,6 +629,10 @@ class Dashboard():
                     ],
                     className="dashboard-main",
                 ),
+                html.Footer(
+                    html.Div(self.footer_text, className="dashboard-footer-text"),
+                    className="dashboard-footer",
+                ) if self.footer_text else None,
             ],
             className="dashboard-shell",
         )

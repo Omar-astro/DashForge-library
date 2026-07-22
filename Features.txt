@@ -7,7 +7,7 @@
 - [D] Logo support.
 - [D] Optional subtitle displayed directly below the dashboard title.
 - [D] Font selection.
-- [ ] Customizable footer content.
+- [D] Customizable footer content.
 - [ ] Optional timestamp in the footer (`True` / `False`).
 - [ ] Hide the toolbar when desired.
 
