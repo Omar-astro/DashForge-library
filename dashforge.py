@@ -6,15 +6,18 @@ import os
 from flask import send_from_directory
 from typing import Literal
 from param import Color
+from datetime import date
 
 class Dashboard():
     '''Start by Initalizing the main variables of the dashboard'''
     def __init__(self):
         self.Title = None
         self.Logo = None
+        self.footer_text = None
         self.FontFamily = "Arial, sans-serif"
         self.preset_choosen = "preset1"
-        self.footer_text = None
+        self.insights = False
+        self.timestamp = False
         self.kpi = {}
         self.charts = []
         self.chart_titles = []
@@ -117,6 +120,14 @@ class Dashboard():
     def add_chart(self, chart: Figure):
         '''Add a chart to the dashboard'''
         self.charts.append(chart)
+
+    def add_timestamp(self, timestamp: bool = True):
+        '''Add a timestamp to the dashboard'''
+        if timestamp:
+            self.timestamp = True
+            self.Time = date.today().strftime("%Y-%m-%d")
+        else:
+            self.timestamp = False
     
     def set_logo(self, logo_path:str):
         '''Set the logo of the dashboard'''
@@ -124,6 +135,7 @@ class Dashboard():
 
     def add_kpi(self, kpi_name, kpi_value):
         '''Add a KPI to the dashboard'''
+        self.insights = True
         self.kpi[kpi_name] = kpi_value
     
     def preset(self, preset_name):
@@ -220,17 +232,40 @@ class Dashboard():
                         background-color: {self.headerBG_color};
                         border-top: 3px solid {accent_color};
                         padding: 14px 30px;
+                    }}
+
+                    .dashboard-footer-content {{
+                        width: 100%;
                         display: flex;
                         align-items: center;
-                        gap: 12px;
-                        align-items: center;
                         justify-content: center;
+                        gap: 16px;
+                        flex-wrap: wrap;
+                    }}
+
+                    .dashboard-footer-content:has(.dashboard-footer-text) {{
+                        justify-content: space-between;
                     }}
 
                     .dashboard-footer-text {{
                         color: {accent_color};
                         font-size: 28px;
                         line-height: 1.2;
+                        margin: 0;
+                    }}
+
+                    .Timestamp-with-footer {{
+                        color: {self.chat_text_color};
+                        font-size: 14px;
+                        line-height: 1.2;
+                        text-align: center;
+                    }}
+
+                    .Timestamp-only {{
+                        color: {self.chat_text_color};
+                        font-size: 14px;
+                        line-height: 1.2;
+                        text-align: center;
                     }}
 
                     .chart-subtitle {{
@@ -467,17 +502,6 @@ class Dashboard():
         </html>
         """
 
-        insights = [
-            html.Div(
-                [
-                    html.Div(kpi_name, className="insight-label"),
-                    html.Div(kpi_value, className="insight-value"),
-                ],
-                className="insight-card",
-            )
-            for kpi_name, kpi_value in self.kpi.items()
-        ]
-
         def styled_chart(chart):
             figure = deepcopy(chart)
             try:
@@ -612,13 +636,29 @@ class Dashboard():
         else:
             header_comp = html.Header(html.H1(self.Title or "Dashboard"), className="dashboard-header")
 
+        def _retrieve_timestamp():
+            if self.footer_text:
+                return html.P(f"Generated on {self.Time}", className="Timestamp-with-footer")
+            else:
+                return html.P(f"Generated on {self.Time}", className="Timestamp-only")
+
         self.app.layout = html.Div(
             [
                 dcc.Store(id="maximized-chart"),
                 header_comp,
                 html.Div(
                     [
-                        html.Aside(insights, className="insights-sidebar") if insights else None,
+                        html.Aside([ #KPI cards
+                                    html.Div(
+                                        [
+                                            html.Div(kpi_name, className="insight-label"),
+                                            html.Div(kpi_value, className="insight-value"),
+                                        ],
+                                        className="insight-card",
+                                    )
+                                    for kpi_name, kpi_value in self.kpi.items()
+                                ]
+                                   , className="insights-sidebar") if self.insights else None,
                         html.Main(
                             html.Div(
                                 html.Div(chart_rows, id="chart-grid", className="chart-grid"),
@@ -630,9 +670,12 @@ class Dashboard():
                     className="dashboard-main",
                 ),
                 html.Footer(
-                    html.Div(self.footer_text, className="dashboard-footer-text"),
+                    html.Div([
+                        html.Div(self.footer_text, className="dashboard-footer-text") if self.footer_text else None,
+                        _retrieve_timestamp() if self.timestamp else None
+                    ], className="dashboard-footer-content"),
                     className="dashboard-footer",
-                ) if self.footer_text else None,
+                ) if self.footer_text or self.timestamp else None,
             ],
             className="dashboard-shell",
         )

@@ -48,7 +48,7 @@ dashboard.add_kpi("KPI 2", 200)
 dashboard.add_kpi("Total profit", 50000)
 dashboard.add_kpi("KPI 3", 300213)
 # dashboard.set_font_family("Bodoni MT")
-# dashboard.set_footer_text("@Astronial                     -                    2024-12-5")
+# dashboard.set_footer_text("@Astronial")
 dashboard.set_chart_titles([None, "Scatter Plot", "Area Chart", "Funnel Chart", "Pie Chart", "Treemap", "Area Chart 2"])
 dashboard.set_chart_subtitles(["This is a parallel coordinates chart", 
                                None,
@@ -58,6 +58,8 @@ dashboard.set_chart_subtitles(["This is a parallel coordinates chart",
                                "This is a pie chart", 
                                "This is a treemap chart", 
                                "This is an area chart 2"])
+
+# dashboard.add_timestamp()
 dashboard.preset("preset1")
 dashboard.build_dashboard()
 dashboard.run()
