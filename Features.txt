@@ -8,24 +8,24 @@
 - [D] Optional subtitle displayed directly below the dashboard title.
 - [D] Font selection.
 - [D] Customizable footer content.
-- [ ] Optional timestamp in the footer (`True` / `False`).
-- [ ] Hide the toolbar when desired.
+- [D] Optional timestamp in the footer (`True` / `False`).
+- [D] Hide the toolbar when desired.
 
 ## Layout and content
 
-- [ ] Let users choose the number of charts per row, up to three.
-- [ ] Let users configure individual chart sizes.
+- [D] Let users choose the number of charts per row, up to three. Total charts 6: [1, 2, 2, 1]
+- [ ] Let users configure individual chart sizes. max 100 per row. [None, [30, 60], None, [100]]
 - [D] Use sensible defaults whenever an option is omitted.
-- [ ] Allow a library text box to be placed in the dashboard instead of a chart.
-- [ ] Consider a compact text box beneath a chart (needs design work so it does not conflict with the editable footer).
+- [ ] Allow a library text box to be placed in the dashboard instead of a chart. (new class)
 
 ## Data and output
 
 - [ ] Data-table support.
-- [ ] Dashboard image export (a clean generated image, rather than a screenshot).
 
 ## Future versions / research -----------------------------------
 
+- [ ] Consider a compact text box beneath a chart (needs design work so it does not conflict with the editable footer).
+- [ ] Dashboard image export (a clean generated image, rather than a screenshot).
 - [ ] Dashboard filters - define an implementation approach.
 - [ ] Multiple dashboard pages.
 - [ ] Responsive layouts for different screen sizes and devices.

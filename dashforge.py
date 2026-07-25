@@ -18,10 +18,12 @@ class Dashboard():
         self.preset_choosen = "preset1"
         self.insights = False
         self.timestamp = False
+        self.header_option = False
         self.kpi = {}
         self.charts = []
         self.chart_titles = []
         self.chart_subtitles = []
+        self.chart_per_row = []
         self._allowed_presets = {"preset1"}
         #region color initialization
         self.line_colors = "#ff8c00"
@@ -117,9 +119,36 @@ class Dashboard():
         '''Set the title of the dashboard'''
         self.Title = title
     
+    def hide_Header(self, hide: bool = True):
+        '''Hide the header of the dashboard'''
+        self.header_option = hide
+
     def add_chart(self, chart: Figure):
         '''Add a chart to the dashboard'''
-        self.charts.append(chart)
+        if isinstance(chart, Figure):
+            self.charts.append(chart)
+        elif isinstance(chart, list) and all(isinstance(c, Figure) for c in chart):
+            self.charts.extend(chart)
+        else:
+            raise ValueError("Chart must be a plotly.graph_objects.Figure or a list of Figures")
+
+    def set_chart_per_row(self, chart_amount: list):
+        '''Set the number of charts per row in the dashboard'''
+        '''Set the chart amount per row to match the number of charts added to the dashboard
+         EX: If 6 charts are added to the dashboard, and the chart_amount is set to [2, 3, 1], 
+         then the first row will have 2 charts, the second row will have 3 charts, 
+         and the third row will have 1 chart.
+         
+            Example usage:
+            add_chart([fig1, fig2, fig3, fig4, fig5, fig6])
+            set_chart_per_row([2, 3, 1]) # This will set the first row to have 2 charts, the second row to have 3 charts, and the third row to have 1 chart.
+         '''
+        no_charts = len(self.charts)
+        if sum(chart_amount) != no_charts:
+            raise ValueError(f"Sum of chart_amount {sum(chart_amount)} does not match the number of charts added {no_charts}.")
+        elif all(1 <= n <= 3 for n in chart_amount):
+            raise ValueError("Each value in chart_amount must be between 1 and 3 (inclusive).")
+        self.chart_per_row = chart_amount
 
     def add_timestamp(self, timestamp: bool = True):
         '''Add a timestamp to the dashboard'''
@@ -339,18 +368,6 @@ class Dashboard():
                         width: 100%;
                     }}
 
-                    .chart-row-1 {{
-                        grid-template-columns: minmax(0, 1fr);
-                    }}
-
-                    .chart-row-2 {{
-                        grid-template-columns: repeat(2, minmax(0, 1fr));
-                    }}
-
-                    .chart-row-3 {{
-                        grid-template-columns: repeat(3, minmax(0, 1fr));
-                    }}
-
                     .chart-wrapper {{
                         min-width: 0;
                     }}
@@ -396,24 +413,13 @@ class Dashboard():
                         border: 2px solid {accent_color};
                         border-radius: 8px;
                         padding: 15px;
-                        min-height: 330px;
+                        width: 100%;
+                        height: clamp(240px, 50.6vh, 400px);
                         overflow: hidden;
                     }}
 
-                    .chart-row-1 .chart-card {{
-                        min-height: 450px;
-                    }}
-
-                    .chart-row-2 .chart-card {{
-                        min-height: 375px;
-                    }}
-
-                    .chart-row-3 .chart-card {{
-                        min-height: 300px;
-                    }}
-
                     .chart-wrapper.maximized .chart-card {{
-                        min-height: 640px;
+                        height: clamp(384px, 80vh, 824px);
                     }}
 
                     .chart-card .dash-graph,
@@ -421,24 +427,9 @@ class Dashboard():
                         height: 100% !important;
                     }}
 
-                    .chart-row-1 .chart-card .dash-graph,
-                    .chart-row-1 .chart-card .js-plotly-plot {{
-                        height: 420px !important;
-                    }}
-
-                    .chart-row-2 .chart-card .dash-graph,
-                    .chart-row-2 .chart-card .js-plotly-plot {{
-                        height: 345px !important;
-                    }}
-
-                    .chart-row-3 .chart-card .dash-graph,
-                    .chart-row-3 .chart-card .js-plotly-plot {{
-                        height: 270px !important;
-                    }}
-
                     .chart-wrapper.maximized .chart-card .dash-graph,
                     .chart-wrapper.maximized .chart-card .js-plotly-plot {{
-                        height: 610px !important;
+                        height: 100% !important;
                     }}
 
                     .empty-state {{
@@ -454,8 +445,8 @@ class Dashboard():
                     }}
 
                     @media (max-width: 1200px) {{
-                        .chart-row-3 {{
-                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                        .chart-row {{
+                            gap: 16px;
                         }}
                     }}
 
@@ -472,21 +463,6 @@ class Dashboard():
 
                         .chart-row {{
                             grid-template-columns: 1fr;
-                        }}
-
-                        .chart-row-1 .chart-card,
-                        .chart-row-2 .chart-card,
-                        .chart-row-3 .chart-card {{
-                            min-height: 300px;
-                        }}
-
-                        .chart-row-1 .chart-card .dash-graph,
-                        .chart-row-1 .chart-card .js-plotly-plot,
-                        .chart-row-2 .chart-card .dash-graph,
-                        .chart-row-2 .chart-card .js-plotly-plot,
-                        .chart-row-3 .chart-card .dash-graph,
-                        .chart-row-3 .chart-card .js-plotly-plot {{
-                            height: 270px !important;
                         }}
                     }}
                 </style>
@@ -531,8 +507,15 @@ class Dashboard():
         chart_rows = []
 
         if self.charts:
-            for i in range(0, len(self.charts), 3):
-                row_charts = self.charts[i:i + 3]
+            i = 0
+            j = 0
+            while i < len(self.charts):
+                if j < len(self.chart_per_row):
+                    row_size = self.chart_per_row[j]
+                else:
+                    row_size = 3  # Default to 3 if not enough entries in chart_per_row
+                j += 1
+                row_charts = self.charts[i:i + row_size]
                 row_cards = []
 
                 for index, chart in enumerate(row_charts, start=i + 1):
@@ -597,10 +580,12 @@ class Dashboard():
                         )
                     )
 
+                i += row_size
                 chart_rows.append(
                     html.Div(
                         row_cards,
-                        className=f"chart-row chart-row-{len(row_charts)}",
+                        className="chart-row",
+                        style={"gridTemplateColumns": f"repeat({len(row_charts)}, minmax(0, 1fr))"},
                     )
                 )
         else:
@@ -610,7 +595,8 @@ class Dashboard():
                         html.H3("Chart", className="chart-title"),
                         html.Div("No charts added yet.", className="empty-state"),
                     ],
-                    className="chart-row chart-row-1",
+                    className="chart-row",
+                    style={"gridTemplateColumns": "minmax(0, 1fr)"},
                 )
             ]
 
@@ -645,7 +631,7 @@ class Dashboard():
         self.app.layout = html.Div(
             [
                 dcc.Store(id="maximized-chart"),
-                header_comp,
+                header_comp if not self.header_option else None,
                 html.Div(
                     [
                         html.Aside([ #KPI cards
@@ -699,6 +685,7 @@ class Dashboard():
                     }
 
                     const selectedChart = buttonId.replace('chart-toggle-', '');
+                    window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
                     return currentChart === selectedChart ? null : selectedChart;
                 }
                 """,
@@ -729,6 +716,7 @@ class Dashboard():
                         }
                     }
 
+                    window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
                     return [gridClass, ...wrapperClasses, ...buttonLabels];
                 }
                 """ % chart_count,
@@ -743,4 +731,4 @@ class Dashboard():
 
     def run(self):
         '''Run the dashboard'''
-        self.app.run(debug=False, port=5000)
+        self.app.run(debug=True, port=5000)
