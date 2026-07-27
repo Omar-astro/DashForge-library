@@ -37,13 +37,17 @@ dashboard.set_logo("Logo23.png")
 dashboard.set_theme("dark")
 dashboard.set_title("Dashboard charts")
 dashboard.add_chart([fig1, fig2, fig3, fig4, fig5, fig6, fig3])
-# dashboard.add_kpi("KPI 1", 100)
-# dashboard.add_kpi("KPI 2", 500)
-# dashboard.add_kpi("Total profit", 50000)
+dashboard.add_kpi("KPI 1", 100)
+dashboard.add_kpi("KPI 2", 500)
+dashboard.add_kpi("Total profit", 50000)
 # dashboard.add_kpi("KPI 3", 300213)
 # dashboard.set_font_family("Bodoni MT")
 # dashboard.set_footer_text("@Astronial")
 dashboard.set_chart_per_row([3,2,1,1])
+dashboard.set_custom_size([[[130, 100], [110, 130], [100, 100]], 
+                           [[70, 120], [100, 150]],
+                           [[100, 250]],
+                           None])
 dashboard.set_chart_titles([None, "Scatter Plot", "Area Chart", "Funnel Chart", "Pie Chart", "Treemap", "Area Chart 2"])
 dashboard.set_chart_subtitles(["This is a parallel coordinates chart", 
                                None,

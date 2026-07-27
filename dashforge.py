@@ -11,6 +11,8 @@ from datetime import date
 class Dashboard():
     '''Start by Initalizing the main variables of the dashboard'''
     def __init__(self):
+        self.port = 5000
+        self.debug = True
         self.Title = None
         self.Logo = None
         self.footer_text = None
@@ -19,11 +21,13 @@ class Dashboard():
         self.insights = False
         self.timestamp = False
         self.header_option = False
+        self.chart_row_tag = False
         self.kpi = {}
         self.charts = []
         self.chart_titles = []
         self.chart_subtitles = []
         self.chart_per_row = []
+        self.custom_sizes = []
         self._allowed_presets = {"preset1"}
         #region color initialization
         self.line_colors = "#ff8c00"
@@ -70,6 +74,14 @@ class Dashboard():
     def set_chart_titles(self, titles: list):
         '''Set the titles for the charts'''
         self.chart_titles = titles
+
+    def set_port(self, port: int):
+        '''Set the port for the dashboard'''
+        self.port = port
+
+    def set_debug(self, debug: bool):
+        '''Set the debug mode for the dashboard'''
+        self.debug = debug
 
     def set_chart_subtitles(self, subtitles: list):
         '''Set the subtitles for the charts'''
@@ -143,11 +155,13 @@ class Dashboard():
             add_chart([fig1, fig2, fig3, fig4, fig5, fig6])
             set_chart_per_row([2, 3, 1]) # This will set the first row to have 2 charts, the second row to have 3 charts, and the third row to have 1 chart.
          '''
+
+        self.chart_row_tag = True
         no_charts = len(self.charts)
         if sum(chart_amount) != no_charts:
             raise ValueError(f"Sum of chart_amount {sum(chart_amount)} does not match the number of charts added {no_charts}.")
-        elif all(1 <= n <= 3 for n in chart_amount):
-            raise ValueError("Each value in chart_amount must be between 1 and 3 (inclusive).")
+        elif not all(1 <= n <= 3 for n in chart_amount):
+            raise ValueError("Each value in chart_amount must be between 1 and 3 (inclusive).") 
         self.chart_per_row = chart_amount
 
     def add_timestamp(self, timestamp: bool = True):
@@ -158,6 +172,42 @@ class Dashboard():
         else:
             self.timestamp = False
     
+    def set_custom_size(self, sizes_list: list): #[None, [[30,150], [60,100]], None, [100]]
+        if not self.chart_row_tag: # default will be 3 per row.
+            no_rows = len(self.charts) // 3 + (len(self.charts) % 3 > 0)
+        else:
+            no_rows = len(self.chart_per_row)
+
+        # First layer: Each row
+        # second layer: each chart
+        # third layer: [x, y] where x is the width and y is the height
+        if len(sizes_list) != no_rows:
+            raise ValueError(f"Length of sizes_list {len(sizes_list)} does not match the number of rows {no_rows}.")
+        for i in range(len(sizes_list)):
+            values = sizes_list[i]
+            if values is not None:
+                if not isinstance(values, list):
+                    raise ValueError("Each row's size specification must be a list or None.")
+
+                # check if the charts set is the same amount in the row
+                if not self.chart_row_tag:
+                    expected_charts_in_row = 3 if i < no_rows - 1 else len(self.charts) % 3 or 3
+                else:
+                    expected_charts_in_row = self.chart_per_row[i]
+                if len(values) != expected_charts_in_row:
+                    raise ValueError(f"Row {i + 1} expects {expected_charts_in_row} size specifications, but got {len(values)}.")
+                
+                for size in values:
+                    if not (isinstance(size, list) and len(size) == 2 and all(isinstance(dim, (int, float)) for dim in size)):
+                        raise ValueError("Each chart's size must be a list of two numbers [width, height].")
+                # make sure that the sum of x values in the row is 100  - IGNORED FOR NOW -
+                # total_width = sum(size[0] for size in values)
+                # if total_width != 100:
+                #     raise ValueError(f"Total width for row {i + 1} is {total_width}, but it must sum to 100.")
+
+        self.custom_sizes = sizes_list
+            
+
     def set_logo(self, logo_path:str):
         '''Set the logo of the dashboard'''
         self.Logo = logo_path
@@ -407,6 +457,8 @@ class Dashboard():
                     .maximize-btn:hover {{
                         filter: brightness(1.12);
                     }}
+                    
+
 
                     .chart-card {{
                         background-color: {self.ChartBorder_color};
@@ -414,12 +466,14 @@ class Dashboard():
                         border-radius: 8px;
                         padding: 15px;
                         width: 100%;
-                        height: clamp(240px, 50.6vh, 400px);
+                        height: calc(clamp(240px, 50.6vh, 400px) * var(--chart-height-scale, 1));
                         overflow: hidden;
                     }}
 
+
+
                     .chart-wrapper.maximized .chart-card {{
-                        height: clamp(384px, 80vh, 824px);
+                        height: calc(clamp(384px, 80vh, 824px) * var(--chart-height-scale, 1));
                     }}
 
                     .chart-card .dash-graph,
@@ -504,6 +558,27 @@ class Dashboard():
                     )
             return figure
 
+        def _row_sizes_for(row_index: int):
+            if row_index >= len(self.custom_sizes):
+                return None
+            return self.custom_sizes[row_index]
+
+        def _chart_height_style(size_spec):
+            if size_spec is None:
+                return {}
+            return {"--chart-height-scale": str(size_spec[1] / 100)}
+
+        def _row_grid_style(row_sizes, row_length: int):
+            if row_sizes is None:
+                return {"gridTemplateColumns": f"repeat({row_length}, minmax(0, 1fr))"}
+
+            return {
+                "gridTemplateColumns": " ".join(
+                    f"minmax(0, {100 if size_spec is None else size_spec[0]}fr)"
+                    for size_spec in row_sizes
+                )
+            }
+
         chart_rows = []
 
         if self.charts:
@@ -516,9 +591,11 @@ class Dashboard():
                     row_size = 3  # Default to 3 if not enough entries in chart_per_row
                 j += 1
                 row_charts = self.charts[i:i + row_size]
+                row_sizes = _row_sizes_for(len(chart_rows))
                 row_cards = []
 
-                for index, chart in enumerate(row_charts, start=i + 1):
+                for offset, chart in enumerate(row_charts):
+                    index = i + offset + 1
                     # Determine title and optional subtitle for this chart.
                     # If an entry exists but is explicitly None, skip rendering for that entry.
                     if index <= len(self.chart_titles):
@@ -573,6 +650,9 @@ class Dashboard():
                                         },
                                     ),
                                     className="chart-card",
+                                    style=_chart_height_style(
+                                        row_sizes[offset] if row_sizes is not None and offset < len(row_sizes) else None
+                                    ),
                                 ),
                             ],
                             id=f"chart-wrapper-{index}",
@@ -585,7 +665,7 @@ class Dashboard():
                     html.Div(
                         row_cards,
                         className="chart-row",
-                        style={"gridTemplateColumns": f"repeat({len(row_charts)}, minmax(0, 1fr))"},
+                        style=_row_grid_style(row_sizes, len(row_charts)),
                     )
                 )
         else:
@@ -731,4 +811,4 @@ class Dashboard():
 
     def run(self):
         '''Run the dashboard'''
-        self.app.run(debug=True, port=5000)
+        self.app.run(debug=self.debug, port=self.port)
