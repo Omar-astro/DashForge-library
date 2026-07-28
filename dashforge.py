@@ -1,12 +1,12 @@
 from copy import deepcopy
-import plotly.express as px
 from plotly.graph_objects import Figure
-from dash import Dash, Input, Output, State, dcc, html
+from dash import Dash, Input, Output, State, dash_table, dcc, html
 import os
 from flask import send_from_directory
 from typing import Literal
 from param import Color
 from datetime import date
+import pandas as pd
 
 class Dashboard():
     '''Start by Initalizing the main variables of the dashboard'''
@@ -16,7 +16,9 @@ class Dashboard():
         self.Title = None
         self.Logo = None
         self.footer_text = None
+        self.dataset = None
         self.FontFamily = "Arial, sans-serif"
+        self.data_name = "Data Table"
         self.preset_choosen = "preset1"
         self.insights = False
         self.timestamp = False
@@ -28,6 +30,7 @@ class Dashboard():
         self.chart_subtitles = []
         self.chart_per_row = []
         self.custom_sizes = []
+        self.max_buttons = []
         self._allowed_presets = {"preset1"}
         #region color initialization
         self.line_colors = "#ff8c00"
@@ -44,32 +47,37 @@ class Dashboard():
         self.ChartBorder_color = "#3a3a3a"
         #endregion
 
-    def set_bg_color(self, line: Color = "#ff8c00",
-                     behindchart: Color = "#1a1a1a",
-                     outterChart: Color = "#1a1a1a",
-                     innerChart: Color = "#1a1a1a",
-                     ChartText: Color = "#ffffff",
-                     HeaderBG: Color = "#2d2d2d",
-                     KPIBackgroundArea: Color = "#2d2d2d",
-                     KPICard: Color = "#1a1a1a",
-                     KPIText: Color = "#ffffff",
-                     ChartAreaBackground: Color = "#2d2d2d",
-                     MaximizeButton: Color = "#1a1a1a",
-                     ChartBorder: Color = "#3a3a3a"
+    def set_colors(self, line: Color | None = None,
+                     behindchart: Color | None = None,
+                     outterChart: Color | None = None,
+                     innerChart: Color | None = None,
+                     ChartText: Color | None = None,
+                     HeaderBG: Color | None = None,
+                     KPIBackgroundArea: Color | None = None,
+                     KPICard: Color | None = None,
+                     KPIText: Color | None = None,
+                     ChartAreaBackground: Color | None = None,
+                     MaximizeButton: Color | None = None,
+                     ChartBorder: Color | None = None
                      ):
-        '''Set the background color of the dashboard'''
-        self.line_colors = line
-        self.chartBG = behindchart
-        self.outterchart_bg = outterChart
-        self.innerChart_bg = innerChart
-        self.chat_text_color = ChartText
-        self.headerBG_color = HeaderBG
-        self.kPIBG_color = KPIBackgroundArea
-        self.kPICard_color = KPICard
-        self.kPItext_color = KPIText
-        self.chartArea_BG_color = ChartAreaBackground
-        self.maxbtn_color = MaximizeButton
-        self.ChartBorder_color = ChartBorder
+        '''Update one or more dashboard colours, leaving omitted values unchanged.'''
+        colour_updates = {
+            "line_colors": line,
+            "chartBG": behindchart,
+            "outterchart_bg": outterChart,
+            "innerChart_bg": innerChart,
+            "chat_text_color": ChartText,
+            "headerBG_color": HeaderBG,
+            "kPIBG_color": KPIBackgroundArea,
+            "kPICard_color": KPICard,
+            "kPItext_color": KPIText,
+            "chartArea_BG_color": ChartAreaBackground,
+            "maxbtn_color": MaximizeButton,
+            "ChartBorder_color": ChartBorder,
+        }
+        for attribute, colour in colour_updates.items():
+            if colour is not None:
+                setattr(self, attribute, colour)
         
     def set_chart_titles(self, titles: list):
         '''Set the titles for the charts'''
@@ -78,6 +86,10 @@ class Dashboard():
     def set_port(self, port: int):
         '''Set the port for the dashboard'''
         self.port = port
+
+    def set_dataset_name(self, data_name: str):
+        '''Set the name for the dataset'''
+        self.data_name = data_name
 
     def set_debug(self, debug: bool):
         '''Set the debug mode for the dashboard'''
@@ -95,24 +107,33 @@ class Dashboard():
         '''Set the footer text for the dashboard'''
         self.footer_text = footer_text
 
+    def add_dataset(self, dataset: pd.DataFrame):
+        '''Add a dataset to the dashboard'''
+        self.hide_Header(False)  # Ensure header is visible when a dataset is added
+        if not isinstance(dataset, pd.DataFrame):
+            raise ValueError("Dataset must be a pandas DataFrame")
+        self.dataset = dataset
+
     def set_theme(self, theme: Literal["dark", "light"]):
         '''Set the theme of the dashboard'''
         if theme not in ["dark", "light"]:
             raise ValueError("Theme must be 'dark' or 'light'")
         if theme == "dark":
-            self.set_bg_color(behindchart="#1a1a1a",
+            self.set_colors(line="#ff8c00",
+                              behindchart="#1a1a1a",
                               outterChart="#1a1a1a",
                               innerChart="#1a1a1a",
                               HeaderBG="#2d2d2d",
                               KPIBackgroundArea="#2d2d2d",
                               KPICard="#1a1a1a",
+                              KPIText="#ffffff",
                               ChartAreaBackground="#2d2d2d",
                               MaximizeButton="#1a1a1a",
                               ChartBorder="#3a3a3a",
                               ChartText="#ffffff")
         else:
             # Light theme: contrasting/inverted colors from the dark theme
-            self.set_bg_color(
+            self.set_colors(
                 line="#ff8c00",  # keep accent color
                 behindchart="#ffffff",
                 outterChart="#ffffff",
@@ -133,6 +154,8 @@ class Dashboard():
     
     def hide_Header(self, hide: bool = True):
         '''Hide the header of the dashboard'''
+        if self.dataset is not None:
+            raise ValueError("Cannot hide header when a dataset is added. Remove the dataset first.")
         self.header_option = hide
 
     def add_chart(self, chart: Figure):
@@ -163,6 +186,14 @@ class Dashboard():
         elif not all(1 <= n <= 3 for n in chart_amount):
             raise ValueError("Each value in chart_amount must be between 1 and 3 (inclusive).") 
         self.chart_per_row = chart_amount
+
+    def set_max_buttons(self, max_buttons: list):
+        '''Chooses which charts contains the max button option, all by default'''
+        if len(max_buttons) != len(self.charts):
+            raise ValueError(f"Length of max_buttons {len(max_buttons)} does not match the number of charts {len(self.charts)}.")
+        elif not all(isinstance(b, bool) for b in max_buttons):
+            raise ValueError("All values in max_buttons must be boolean (True or False).")
+        self.max_buttons = max_buttons
 
     def add_timestamp(self, timestamp: bool = True):
         '''Add a timestamp to the dashboard'''
@@ -212,11 +243,17 @@ class Dashboard():
         '''Set the logo of the dashboard'''
         self.Logo = logo_path
 
-    def add_kpi(self, kpi_name, kpi_value):
+    def add_kpi(self, kpi_name, kpi_value = None):
         '''Add a KPI to the dashboard'''
         self.insights = True
-        self.kpi[kpi_name] = kpi_value
-    
+        
+        if isinstance(kpi_name, str) or isinstance(kpi_name, int) or isinstance(kpi_name, float):
+            self.kpi[kpi_name] = kpi_value
+        elif isinstance(kpi_name, dict):
+            self.kpi.update(kpi_name)
+        else:
+            raise ValueError("KPI name must be a string or a dictionary")
+
     def preset(self, preset_name):
         '''Choose a preset for the dashboard'''
         if preset_name not in self._allowed_presets:
@@ -233,11 +270,10 @@ class Dashboard():
     def __layout1(self):
         self.app = Dash(__name__)
         self.app.title = self.Title or "Dashboard"
-# Serve project-root files at /files/<filename> so plain paths like "Logo.png" work
+        # Serve project-root files at /files/<filename> so plain paths like "Logo.png" work
         @self.app.server.route('/files/<path:filename>')
         def _serve_project_file(filename):
             return send_from_directory(os.getcwd(), filename)
-#"#1a1a1a"
         dashboard_color = self.chartBG
         accent_color = self.line_colors
 
@@ -307,6 +343,56 @@ class Dashboard():
                         line-height: 1.2;
                     }}
 
+                    .page-toggle-btn {{
+                        margin-left: auto;
+                        background-color: {accent_color};
+                        color: {self.maxbtn_color};
+                        border: none;
+                        border-radius: 5px;
+                        padding: 9px 14px;
+                        cursor: pointer;
+                        font-weight: bold;
+                    }}
+
+                    .page-toggle-btn:hover {{
+                        filter: brightness(1.12);
+                    }}
+
+                    .dataset-page-main {{
+                        flex: 1;
+                        padding: 20px;
+                        overflow: auto;
+                    }}
+
+                    .dataset-card {{
+                        width: 100%;
+                        background-color: {self.chartArea_BG_color};
+                        border-left: 5px solid {accent_color};
+                        border-radius: 8px;
+                        padding: 20px;
+                    }}
+
+                    .dataset-heading {{
+                        display: flex;
+                        align-items: baseline;
+                        justify-content: space-between;
+                        gap: 12px;
+                        margin-bottom: 18px;
+                        flex-wrap: wrap;
+                    }}
+
+                    .dataset-title {{
+                        color: {accent_color};
+                        font-size: 24px;
+                        margin: 0;
+                    }}
+
+                    .dataset-summary {{
+                        color: {self.chat_text_color};
+                        font-size: 14px;
+                        opacity: 0.85;
+                    }}
+
                     .dashboard-footer {{
                         background-color: {self.headerBG_color};
                         border-top: 3px solid {accent_color};
@@ -338,6 +424,7 @@ class Dashboard():
                         font-size: 14px;
                         line-height: 1.2;
                         text-align: center;
+                        padding-right: 30px;
                     }}
 
                     .Timestamp-only {{
@@ -456,6 +543,10 @@ class Dashboard():
 
                     .maximize-btn:hover {{
                         filter: brightness(1.12);
+                    }}
+
+                    .maximize-btn.hidden {{
+                        display: none;
                     }}
                     
 
@@ -579,8 +670,8 @@ class Dashboard():
                 )
             }
 
+        #region chart rows
         chart_rows = []
-
         if self.charts:
             i = 0
             j = 0
@@ -595,6 +686,9 @@ class Dashboard():
                 row_cards = []
 
                 for offset, chart in enumerate(row_charts):
+                    MaxButton_enable = True if (not self.max_buttons) else self.max_buttons[i + offset]
+                    button_class_name = "maximize-btn" if MaxButton_enable else "maximize-btn hidden"
+
                     index = i + offset + 1
                     # Determine title and optional subtitle for this chart.
                     # If an entry exists but is explicitly None, skip rendering for that entry.
@@ -633,7 +727,7 @@ class Dashboard():
                                             "⛶",
                                             id=f"chart-toggle-{index}",
                                             n_clicks=0,
-                                            className="maximize-btn",
+                                            className=button_class_name,
                                             title="Maximize chart",
                                         ),
                                     ],
@@ -679,7 +773,9 @@ class Dashboard():
                     style={"gridTemplateColumns": "minmax(0, 1fr)"},
                 )
             ]
+        #endregion
 
+        #region Logo editor
         # Build header with optional logo on the top-left
         if self.Logo:
             # Use provided path, but map plain filenames to the /files/ route
@@ -696,17 +792,90 @@ class Dashboard():
                 [
                     html.Img(src=logo_src, alt="Logo", className="dashboard-logo"),
                     html.H1(self.Title or "Dashboard"),
+                    html.Button(
+                        "Page 2",
+                        id="page-toggle",
+                        n_clicks=0,
+                        className="page-toggle-btn",
+                    ) if self.dataset is not None else None,
                 ],
                 className="dashboard-header",
             )
         else:
-            header_comp = html.Header(html.H1(self.Title or "Dashboard"), className="dashboard-header")
+            header_comp = html.Header(
+                [
+                    html.H1(self.Title or "Dashboard"),
+                    html.Button(
+                        "Page 2",
+                        id="page-toggle",
+                        n_clicks=0,
+                        className="page-toggle-btn",
+                    ) if self.dataset is not None else None,
+                ],
+                className="dashboard-header",
+            )
+        #endregion
 
         def _retrieve_timestamp():
             if self.footer_text:
                 return html.P(f"Generated on {self.Time}", className="Timestamp-with-footer")
             else:
                 return html.P(f"Generated on {self.Time}", className="Timestamp-only")
+
+        dataset_page = None
+        if self.dataset is not None:
+            dataset_page = html.Main(
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                html.H2(self.data_name, className="dataset-title"),
+                                html.Span(
+                                    f"{len(self.dataset):,} rows · {len(self.dataset.columns):,} columns",
+                                    className="dataset-summary",
+                                ),
+                            ],
+                            className="dataset-heading",
+                        ),
+                        dash_table.DataTable(
+                            id="data-table",
+                            columns=[{"name": str(column), "id": str(column)} for column in self.dataset.columns],
+                            data=self.dataset.rename(columns=str).to_dict("records"),
+                            page_size=20,
+                            sort_action="native",
+                            filter_action="native",
+                            style_table={"overflowX": "auto"},
+                            style_header={
+                                "backgroundColor": accent_color,
+                                "color": self.maxbtn_color,
+                                "fontWeight": "bold",
+                                "border": f"1px solid {accent_color}",
+                            },
+                            style_data={
+                                "backgroundColor": self.kPICard_color,
+                                "color": self.chat_text_color,
+                                "border": f"1px solid {self.ChartBorder_color}",
+                            },
+                            style_cell={
+                                "padding": "12px",
+                                "minWidth": "120px",
+                                "width": "120px",
+                                "maxWidth": "320px",
+                                "textAlign": "left",
+                                "fontFamily": safe_font_family,
+                                "whiteSpace": "normal",
+                                "height": "auto",
+                            },
+                            style_filter={
+                                "backgroundColor": self.outterchart_bg,
+                                "color": self.chat_text_color,
+                            },
+                        ),
+                    ],
+                    className="dataset-card",
+                ),
+                className="dataset-page-main",
+            )
 
         self.app.layout = html.Div(
             [
@@ -734,6 +903,13 @@ class Dashboard():
                         ),
                     ],
                     className="dashboard-main",
+                    id="page-one",
+                ),
+                html.Div(
+                    dataset_page,
+                    className="dashboard-main",
+                    id="page-two",
+                    style={"display": "none"},
                 ),
                 html.Footer(
                     html.Div([
@@ -745,6 +921,21 @@ class Dashboard():
             ],
             className="dashboard-shell",
         )
+
+        if not self.header_option and self.dataset is not None:
+            @self.app.callback(
+                Output("page-one", "style"),
+                Output("page-two", "style"),
+                Output("page-toggle", "children"),
+                Input("page-toggle", "n_clicks"),
+            )
+            def toggle_page(n_clicks):
+                showing_page_two = n_clicks and n_clicks % 2 == 1
+
+                if showing_page_two:
+                    return {"display": "none"}, {"display": "flex"}, "Dashboard"
+
+                return {"display": "flex"}, {"display": "none"}, "Page 2"
 
         if self.charts:
             chart_count = len(self.charts)

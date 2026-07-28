@@ -16,7 +16,7 @@
 - [D] Let users choose the number of charts per row, up to three. Total charts 6: [1, 2, 2, 1]
 - [D] Let users configure individual chart sizes. max 100 per row. [None, [[30,150], [60,100]], None, [100]]
 - [D] Use sensible defaults whenever an option is omitted.
-- [ ] Customize which charts allow having the maximize button.
+- [D] Customize which charts allow having the maximize button.
 
 ## Data and output
 
@@ -31,6 +31,7 @@
 - [ ] Responsive layouts for different screen sizes and devices.
 - [ ] CSV tab with search for finding items within uploaded/displayed CSV data.
 - [ ] Allow a library text box to be placed in the dashboard instead of a chart. (new class)
+- [ ] Saved design settings template option.
 
 ## Decisions / notes
 
