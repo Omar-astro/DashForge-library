@@ -122,10 +122,10 @@ Want to see DashForge pushed in different directions? The repository includes
 ready-to-run examples with different color palettes, chart combinations,
 dashboard styles, KPI setups, dataset views, and layouts.
 
-Browse the example dashboard collection, then run any scenario from the project root:
+Browse the [example dashboard collection](https://github.com/Omar-astro/DashForge-library/tree/main/Examples), then run any scenario from the project root:
 
 ```powershell
-python TestCases/01_dark_command_center.py
+python Examples/01_dark_command_center.py
 ```
 
 ## Roadmap
@@ -156,9 +156,11 @@ another developer or analyst who could use a faster way to build dashboards.
 
 ## Documentation
 
-The full documentation website will cover every feature and show how to get the
+The full documentation website covers every feature and shows how to get the
 most out of DashForge.
+
+[Read the documentation](https://omar-astro.github.io/DashForge-library/)
 
 ## GitHub
 
-GitHub repository: 
+GitHub repository: [github.com/Omar-astro/DashForge-library](https://github.com/Omar-astro/DashForge-library/)

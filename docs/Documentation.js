@@ -36,7 +36,7 @@
     document.querySelector('.nav-list').innerHTML = sections
       .map(([id, label]) => `<a href="#${id}">${label}</a>`)
       .join('');
-    document.querySelector('.sidebar-bottom').innerHTML = '<a href="index.html">← All documentation</a>';
+    document.querySelector('.sidebar-bottom').innerHTML = '<a href="index.html">← All documentation</a><a href="https://pypi.org/project/dashforge/" target="_blank" rel="noreferrer">View on PyPI ↗</a><a href="https://github.com/Omar-astro/DashForge-library" target="_blank" rel="noreferrer">View on GitHub ↗</a>';
   } else {
     document.querySelectorAll('[data-page-link]').forEach((link) => {
       link.classList.toggle('active', link.dataset.pageLink === currentPage);

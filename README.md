@@ -81,7 +81,9 @@ Install DashForge from your terminal:
 pip install Dashforge
 ```
 
-**PyPI: https://pypi.org/project/dashforge/** <!-- Paste the PyPI library link here when it is ready. -->
+**PyPI:** [pypi.org/project/dashforge](https://pypi.org/project/dashforge/)
+
+**Documentation:** [omar-astro.github.io/DashForge-library](https://omar-astro.github.io/DashForge-library/)
 
 ## Quick start
 
@@ -171,11 +173,11 @@ Want to see DashForge pushed in different directions? The repository includes
 ready-to-run examples with different color palettes, chart combinations,
 dashboard styles, KPI setups, dataset views, and layouts.
 
-Browse the [example dashboard collection](TestCases/README.md), then run any
+Browse the [example dashboard collection](Examples/README.md), then run any
 scenario from the project root:
 
 ```powershell
-python TestCases/01_dark_command_center.py
+python Examples/01_dark_command_center.py
 ```
 
 ## Roadmap
@@ -213,7 +215,7 @@ another developer or analyst who could use a faster way to build dashboards.
 The full documentation website will cover every feature and show how to get the
 most out of DashForge.
 
-**Documentation website:** <!-- Paste the documentation website link here when it is ready. -->
+**Documentation website:** [omar-astro.github.io/DashForge-library](https://omar-astro.github.io/DashForge-library/)
 
 ## License
 
