@@ -1,6 +1,7 @@
 """Seven chart families in one playful, colorful gallery."""
 
-from _bootstrap import Dashboard, launch
+from dashforge import Dashboard
+from _bootstrap import launch
 import plotly.express as px
 
 

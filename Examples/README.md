@@ -4,7 +4,7 @@ Each script is a self-contained dashboard scenario.  Run one from the project
 root, for example:
 
 ```powershell
-python TestCases/01_dark_command_center.py
+python Examples/01_dark_command_center.py
 ```
 
 Every case uses a different port so it is convenient to compare several

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="DashForge documentation"><title>DashForge — Documentation</title><link rel="stylesheet" href="Documentation.css"></head>
+<body data-page="start">
+<a class="skip-link" href="#content">Skip to content</a>
+<div class="site-shell">
+  <aside class="sidebar" aria-label="Documentation navigation">
+    <a class="brand" href="index.html"><span class="brand-mark">D</span><span>DashForge</span></a>
+    <p class="sidebar-label">Documentation</p>
+    <nav class="nav-list">
+      <a data-page-link="start" href="index.html">Introduction</a><a data-page-link="start" href="#installation">Installation</a><a data-page-link="start" href="#quickstart">Quick start</a>
+      <p class="nav-heading">Guides &amp; API</p>
+      <a data-page-link="charts" href="charts-and-layout.html">Charts &amp; layout</a><a data-page-link="appearance" href="appearance-and-branding.html">Appearance &amp; branding</a><a data-page-link="data" href="data-and-running.html">KPIs, data &amp; running</a>
+    </nav>
+    <div class="sidebar-bottom"><a href="https://pypi.org/project/dashforge/" target="_blank" rel="noreferrer">View on PyPI ↗</a></div>
+  </aside>
+  <main id="content">
+    <header class="topbar"><span>DashForge <span class="muted">/</span> Documentation</span><button id="theme-toggle" class="theme-toggle" type="button">◐ Theme</button></header>
+    <div class="page" id="top">
+      <section class="hero"><p class="eyebrow">Python dashboards, without the dashboard project</p><h1>Your Plotly figures,<br><em>presented clearly.</em></h1><p class="hero-copy">DashForge turns Plotly figures into a complete interactive Dash dashboard with a small, direct Python API. Configure the presentation and stay focused on the analysis.</p><div class="hero-actions"><a class="button primary" href="#quickstart">Get started</a><a class="button secondary" href="charts-and-layout.html">Explore the API</a></div><div class="hero-meta"><span>✓ Pure Python</span><span>✓ Plotly-native</span><span>✓ Interactive charts</span></div></section>
+      <section class="doc-section"><p class="eyebrow">Introduction</p><h2>What DashForge solves</h2><p>You already made the charts; DashForge makes them feel like a finished dashboard. It turns Plotly figures into cards inside a ready-to-run Dash application, with optional titles, KPIs, branding, a footer, and a searchable dataset page.</p><div class="cards three"><article class="info-card"><span class="card-number">01</span><h3>Deliver analysis</h3><p>Put related figures and decision-making metrics into a single polished view for a stakeholder.</p></article><article class="info-card"><span class="card-number">02</span><h3>Report quickly</h3><p>Move from a notebook or analysis script to an interactive local dashboard without writing layout code.</p></article><article class="info-card"><span class="card-number">03</span><h3>Keep it consistent</h3><p>Reuse a visual language across dashboards through themes, custom colors, typography, and branding.</p></article></div><aside class="note"><strong>Where it fits.</strong> DashForge is for presenting existing Plotly work. For complex callbacks, user workflows, or custom component trees, build directly with Dash.</aside></section>
+      <section id="installation" class="doc-section"><p class="eyebrow">Getting started</p><h2>Install DashForge</h2><p>Install it into the same Python environment that creates your Plotly figures.</p><pre><code>pip install dashforge</code></pre><p>The package brings in Dash, Plotly, pandas, Flask, and param. Import <code>Dashboard</code> wherever you build the report.</p></section>
+      <section id="quickstart" class="doc-section"><p class="eyebrow">Getting started</p><h2>Build your first dashboard</h2><p>The smallest complete workflow is: create one or more Plotly figures, add them, build the app, then start its local server.</p><pre><code>import plotly.express as px
+from dashforge import Dashboard
+
+sales_chart = px.bar(
+    x=["North", "South", "East", "West"],
+    y=[18, 24, 14, 21],
+    title="Quarterly sales",
+)
+
+dashboard = Dashboard()
+dashboard.set_title("Sales overview")
+dashboard.add_chart(sales_chart)
+dashboard.build_dashboard()
+dashboard.run()</code></pre><ol class="steps"><li><strong>Create figures</strong> with Plotly Express or Plotly Graph Objects.</li><li><strong>Configure the dashboard</strong> with the methods relevant to the report.</li><li><strong>Build once, run once</strong> after configuration is complete.</li></ol><!-- assets\Documentation\First_layout.png --></section>
+<!-- Picture needed: assets\Documentation\First_layout.png -->
+      <section class="doc-section"><p class="eyebrow">Choose a guide</p><h2>Continue by task</h2><div class="cards three"><a class="info-card link-card" href="charts-and-layout.html"><span class="card-number">01</span><h3>Add &amp; arrange charts →</h3><p>Detailed patterns for figures, rows, sizing, titles, subtitles, and maximize controls.</p></a><a class="info-card link-card" href="appearance-and-branding.html"><span class="card-number">02</span><h3>Style the dashboard →</h3><p>Theme selection, color overrides, header behavior, fonts, logo, footer, and date stamp.</p></a><a class="info-card link-card" href="data-and-running.html"><span class="card-number">03</span><h3>Finish &amp; run →</h3><p>KPIs, the data-table page, local server settings, and a complete working example.</p></a></div></section>
+    </div><footer class="site-footer"><span>DashForge documentation</span><span>Built for Plotly dashboard creators.</span></footer>
+  </main>
+</div><script src="Documentation.js"></script>
+</body></html>
+

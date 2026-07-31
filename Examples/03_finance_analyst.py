@@ -1,6 +1,7 @@
 """A financial analyst workspace with weighted card widths."""
 
-from _bootstrap import Dashboard, launch
+from dashforge import Dashboard
+from _bootstrap import launch
 import numpy as np
 import pandas as pd
 import plotly.express as px

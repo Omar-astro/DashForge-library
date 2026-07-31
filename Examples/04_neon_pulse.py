@@ -1,6 +1,7 @@
 """Header-free neon telemetry board using Plotly graph objects."""
 
-from _bootstrap import Dashboard, launch
+from dashforge import Dashboard
+from _bootstrap import launch
 import numpy as np
 import plotly.graph_objects as go
 

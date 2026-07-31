@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="DashForge KPI, data and running API"><title>KPIs, data & running — DashForge</title><link rel="stylesheet" href="Documentation.css"></head>
+<body data-page="data"><a class="skip-link" href="#content">Skip to content</a><div class="site-shell">
+<aside class="sidebar" aria-label="Documentation navigation"><a class="brand" href="index.html"><span class="brand-mark">D</span><span>DashForge</span></a><p class="sidebar-label">Documentation</p><nav class="nav-list"><a href="index.html">Introduction</a><a href="index.html#installation">Installation</a><a href="index.html#quickstart">Quick start</a><p class="nav-heading">Guides &amp; API</p><a data-page-link="charts" href="charts-and-layout.html">Charts &amp; layout</a><a data-page-link="appearance" href="appearance-and-branding.html">Appearance &amp; branding</a><a data-page-link="data" href="data-and-running.html">KPIs, data &amp; running</a></nav><div class="sidebar-bottom"><a href="https://pypi.org/project/dashforge/" target="_blank" rel="noreferrer">View on PyPI ↗</a></div></aside>
+<main id="content"><header class="topbar"><span>DashForge <span class="muted">/</span> KPIs, data &amp; running</span><button id="theme-toggle" class="theme-toggle" type="button">◐ Theme</button></header><div class="page">
+<section class="page-intro"><p class="eyebrow">Guide &amp; API reference</p><h1>KPIs, data &amp;<br><em>running.</em></h1><p>Finish the dashboard with high-level metrics and, when appropriate, a built-in page for source data. Then configure its local server and run the completed application.</p></section>
+<section id="kpi" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>add_kpi</h2><div class="signature"><code>add_kpi(kpi_name, kpi_value=None)</code></div><p>Adds a KPI card to the dashboard. KPI cards are intended for the small set of headline metrics that make the chart area easier to interpret at a glance.</p><h3>Pattern 1 — add a single named metric</h3><pre><code>dashboard.add_kpi("Monthly revenue", "$42,000")
+dashboard.add_kpi("Active customers", 128)</code></pre><h3>Pattern 2 — add a group in one call</h3><p>Pass a dictionary when a report has several related metrics. Each dictionary key becomes the KPI label and each value becomes its displayed value.</p><pre><code>dashboard.add_kpi({
+    "Revenue": "$42,000",
+    "Orders": 1_248,
+    "Conversion": "4.6%",
+})</code></pre><h3>Pattern 3 — update an existing card</h3><p>Calling the method again with the same label replaces that card’s displayed value. This is convenient when the value is calculated later in the script.</p><pre><code>dashboard.add_kpi("Forecast", "Pending")
+# ... calculate the model ...
+dashboard.add_kpi("Forecast", "$58,200")</code></pre><p class="validation"><strong>Input rule:</strong> a single KPI label may be a string, integer, or float. A dictionary is also accepted. Use already formatted strings for values such as currency, percentages, or dates when you need exact presentation.</p></section>
+<section id="dataset" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>add_dataset</h2><div class="signature"><code>add_dataset(dataset)</code></div><p>Adds an optional second page containing the supplied pandas <code>DataFrame</code>. The page includes a sortable, filterable Dash table and reports the row and column count. The dashboard header remains visible and gains a button to switch between the chart dashboard and the data page.</p><h3>Pattern 1 — expose the exact dataframe behind a report</h3><pre><code>dashboard.add_dataset(sales)</code></pre><h3>Pattern 2 — load a CSV, then add it</h3><p>DashForge receives a dataframe, not a file path. Read the CSV with pandas first, then pass the resulting dataframe to the dashboard.</p><pre><code>import pandas as pd
+
+sales = pd.read_csv("data/monthly_sales.csv")
+dashboard.add_dataset(sales)</code></pre><h3>Pattern 3 — publish a selected reporting view</h3><p>Create a smaller dataframe when the dashboard should expose only relevant columns or records.</p><pre><code>reporting_columns = ["region", "month", "revenue", "orders"]
+dashboard.add_dataset(sales.loc[:, reporting_columns])</code></pre><h3>Pattern 4 — pair it with a descriptive page title</h3><pre><code>dashboard.add_dataset(sales)
+dashboard.set_dataset_name("Monthly sales source data")</code></pre><!-- assets\gallery\Layout5.5.png --><p class="validation"><strong>Constraint:</strong> the input must be a pandas <code>DataFrame</code>; a list, CSV path, or dictionary raises <code>ValueError</code>. Add the dataset before calling <code>hide_Header()</code>—in practice, retain the header because it provides the necessary page navigation.</p></section>
+<section id="dataset-name" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>set_dataset_name</h2><div class="signature"><code>set_dataset_name(data_name)</code></div><p>Sets the heading shown at the top of the optional dataset page. The default heading is <code>"Data Table"</code>.</p><pre><code>dashboard.set_dataset_name("Employee experience sample")
+dashboard.set_dataset_name("Filtered transaction detail")</code></pre><p class="validation"><strong>Scenario:</strong> name the data in the language of your report so viewers immediately know whether it is source data, a filtered extract, or a reference table.</p></section>
+<section id="server" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>Local server settings</h2>
+<article class="api-entry"><div class="api-title"><h3>set_port</h3><code>set_port(port)</code></div><p>Sets the port used by <code>run()</code>. The default is <code>5000</code>. Change it when that port is already in use, when running more than one dashboard locally, or when your environment expects a particular port.</p><pre><code>dashboard.set_port(8050)
+dashboard.set_port(8061)</code></pre></article>
+<article class="api-entry"><div class="api-title"><h3>set_debug</h3><code>set_debug(debug)</code></div><p>Enables or disables Dash debug mode. Debug mode is enabled by default. It is convenient while building because Dash can reload and show development diagnostics; set it to <code>False</code> for a quieter regular run.</p><pre><code>dashboard.set_debug(False)</code></pre></article></section>
+<section id="build-run" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>build_dashboard &amp; run</h2>
+<article class="api-entry"><div class="api-title"><h3>build_dashboard</h3><code>build_dashboard()</code></div><p>Creates and returns the configured <code>dash.Dash</code> application. Call it after you finish adding figures and settings. Keeping the returned object gives you the normal Dash application, so you can start it yourself or make direct Dash-level changes when needed.</p><h3>Pattern 1 — retain and run the Dash app yourself</h3><pre><code>app = dashboard.build_dashboard()
+app.run(debug=False, port=8050)</code></pre><p>This uses Dash’s own <code>app.run()</code>. It is useful when you want to control the final server call directly or work with the generated app object.</p><h3>Pattern 2 — build without immediately starting</h3><pre><code>app = dashboard.build_dashboard()
+# Inspect or integrate the generated Dash app here.</code></pre></article>
+<article class="api-entry"><div class="api-title"><h3>run</h3><code>run()</code></div><p>Starts the already built application using the values configured through <code>set_port()</code> and <code>set_debug()</code>. It simplifies the common workflow: configure those two Dash settings once on the <code>Dashboard</code> object, then use one short call instead of writing <code>app.run(...)</code> yourself.</p><pre><code>dashboard.set_port(8050)
+dashboard.set_debug(False)
+dashboard.build_dashboard()
+dashboard.run()</code></pre><p class="validation"><strong>Requirement:</strong> call <code>build_dashboard()</code> first, because <code>run()</code> starts the generated application.</p></article></section>
+<section id="complete-example" class="doc-section final-example"><p class="eyebrow">Complete example</p><h2>A finished reporting dashboard</h2><p>This version uses five charts so the chart grouping and custom sizes are visible: two charts in the first row, then three supporting charts in the second.</p><pre><code>import pandas as pd
+import plotly.express as px
+from dashforge import Dashboard
+
+sales = pd.DataFrame({
+    "month": ["Jan", "Feb", "Mar", "Apr", "May"],
+    "revenue": [32000, 38500, 41200, 46800, 49300],
+    "orders": [120, 138, 151, 164, 173],
+})
+sales["cumulative_revenue"] = sales["revenue"].cumsum()
+
+revenue_chart = px.bar(sales, x="month", y="revenue")
+orders_chart = px.line(sales, x="month", y="orders", markers=True)
+cumulative_chart = px.area(sales, x="month", y="cumulative_revenue")
+relationship_chart = px.scatter(sales, x="orders", y="revenue", text="month")
+share_chart = px.pie(sales, names="month", values="orders", hole=0.45)
+
+dashboard = Dashboard()
+dashboard.set_theme("light")
+dashboard.set_colors(line="#2563EB", HeaderBG="#EFF6FF")
+dashboard.set_title("Monthly sales report")
+dashboard.add_kpi({"Revenue": "$49,300", "Orders": 173})
+dashboard.add_chart([
+    revenue_chart, orders_chart, cumulative_chart,
+    relationship_chart, share_chart,
+])
+dashboard.set_chart_per_row([2, 3])
+dashboard.set_custom_size([
+    [[60, 110], [40, 110]],        # Row 1: two primary charts
+    [[34, 82], [33, 82], [33, 82]], # Row 2: three supporting charts
+])
+dashboard.set_chart_titles([
+    "Revenue by month", "Orders by month", "Cumulative revenue",
+    "Revenue and orders", "Order share by month",
+])
+dashboard.add_dataset(sales)
+dashboard.set_dataset_name("Monthly sales data")
+dashboard.set_footer_text("Sales operations · July 2026")
+dashboard.add_timestamp()
+dashboard.set_port(8050)
+dashboard.set_debug(False)
+dashboard.build_dashboard()
+dashboard.run()</code></pre><!-- assets\Documentation\Final_output1.png | assets\Documentation\Final_output1.5.png --></section>
+</div><footer class="site-footer"><span>DashForge documentation</span><span>KPIs, data &amp; running</span></footer></main></div><script src="Documentation.js"></script></body></html>
+

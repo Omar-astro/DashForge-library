@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="DashForge chart and layout API"><title>Charts & layout — DashForge</title><link rel="stylesheet" href="Documentation.css"></head>
+<body data-page="charts"><a class="skip-link" href="#content">Skip to content</a><div class="site-shell">
+<aside class="sidebar" aria-label="Documentation navigation"><a class="brand" href="index.html"><span class="brand-mark">D</span><span>DashForge</span></a><p class="sidebar-label">Documentation</p><nav class="nav-list"><a href="index.html">Introduction</a><a href="index.html#installation">Installation</a><a href="index.html#quickstart">Quick start</a><p class="nav-heading">Guides &amp; API</p><a data-page-link="charts" href="charts-and-layout.html">Charts &amp; layout</a><a data-page-link="appearance" href="appearance-and-branding.html">Appearance &amp; branding</a><a data-page-link="data" href="data-and-running.html">KPIs, data &amp; running</a></nav><div class="sidebar-bottom"><a href="https://pypi.org/project/dashforge/" target="_blank" rel="noreferrer">View on PyPI ↗</a></div></aside>
+<main id="content"><header class="topbar"><span>DashForge <span class="muted">/</span> Charts &amp; layout</span><button id="theme-toggle" class="theme-toggle" type="button">◐ Theme</button></header><div class="page">
+<section class="page-intro"><p class="eyebrow">Guide &amp; API reference</p><h1>Charts &amp;<br><em>layout.</em></h1><p>Start with Plotly figures, then decide how much control the report needs. DashForge defaults to a responsive grid, while the methods below let you define grouping, emphasis, labels, and chart-card behavior.</p></section>
+<section id="workflow" class="doc-section"><p class="eyebrow">Recommended order</p><h2>Build the content before the layout</h2><p>Add all figures first. Methods that refer to chart positions or chart counts—such as row layout, titles, subtitles, and maximize buttons—depend on the order and number of figures already stored in the dashboard.</p><pre><code>dashboard = Dashboard()
+dashboard.add_chart([overview, trend, breakdown])
+
+# Now configure the three chart cards in their added order.
+dashboard.set_chart_per_row([1, 2])
+dashboard.set_chart_titles(["Overview", "Trend", "Breakdown"])</code></pre></section>
+<section id="add-chart" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>add_chart</h2><div class="signature"><code>add_chart(chart)</code></div><p>Adds visual content to the dashboard. It accepts either one Plotly <code>Figure</code> or a list made entirely of Plotly figures. Each call appends to the existing chart collection—it does not replace charts that were added earlier.</p><div class="when"><strong>Use it when:</strong> you have already built the figures and are ready to choose their dashboard presentation.</div>
+<h3>Pattern 1 — add one figure at a time</h3><p>This is useful while your analysis creates figures in separate steps, or when conditional logic decides whether a particular chart should appear.</p><pre><code>dashboard.add_chart(revenue_chart)
+dashboard.add_chart(order_chart)
+
+if show_forecast:
+    dashboard.add_chart(forecast_chart)</code></pre>
+<h3>Pattern 2 — add a related group in one call</h3><p>Pass a list when all charts are known together. This is concise and makes the intended order obvious, which matters for later title and layout lists.</p><pre><code>dashboard.add_chart([
+    revenue_chart,
+    orders_chart,
+    regional_share_chart,
+])</code></pre>
+<h3>Pattern 3 — add groups over time</h3><p>You can mix the two forms. The final order is the order in which figures were received across every call.</p><pre><code>dashboard.add_chart(summary_chart)
+dashboard.add_chart([trend_chart, distribution_chart])
+# Card order is: summary, trend, distribution.</code></pre>
+<p class="validation"><strong>Input rule:</strong> a list must contain only <code>plotly.graph_objects.Figure</code> instances. A dictionary, a dataframe, a Plotly data trace, or a mixed list raises <code>ValueError</code>. Create the figure first, then pass the figure itself.</p></section>
+<section id="title" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>set_title</h2><div class="signature"><code>set_title(title)</code></div><p>Sets the dashboard title in two places: the browser tab and the visible header. Use a concise report-level name rather than the title of one specific chart.</p><pre><code>dashboard.set_title("FY26 commercial performance")
+dashboard.set_title("Customer retention — weekly review")</code></pre><p class="validation"><strong>Scenario:</strong> Put the time range or audience in the title when it prevents ambiguity, for example <code>"Operations snapshot · June 2026"</code>.</p></section>
+<section id="preset" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>preset</h2><div class="signature"><code>preset(preset_name)</code></div><p>Chooses the dashboard layout implementation. The default and only currently supported value is <code>"preset1"</code>, so you ordinarily do not need to call this method. It is included so future layouts can be selected explicitly.</p><pre><code># Optional today: this is the default.
+dashboard.preset("preset1")</code></pre><p class="validation"><strong>Constraint:</strong> unsupported preset names raise <code>ValueError</code>. Do not use internal layout method names; they are not part of the public API.</p></section>
+<section id="rows" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>set_chart_per_row</h2><div class="signature"><code>set_chart_per_row(chart_amount)</code></div><p>Defines exactly how many chart cards appear in each dashboard row. Each number in the list represents one row, must be 1, 2, or 3, and all numbers together must equal the number of figures already added.</p><h3>Pattern 1 — let DashForge choose</h3><p>Do not call this method when a standard grid is enough. DashForge automatically fills rows with up to three charts. With four figures, the final dashboard has <strong>three charts in the first row and one chart in the second row</strong>.</p><pre><code>dashboard.add_chart([fig1, fig2, fig3, fig4])
+# Final layout:
+# Row 1: fig1 | fig2 | fig3
+# Row 2: fig4</code></pre><!-- assets\Documentation\3-1Layout.png --><h3>Pattern 2 — emphasize a lead chart</h3><pre><code>dashboard.add_chart([overview, trend, map])
+dashboard.set_chart_per_row([1, 2])
+# Row 1: overview
+# Row 2: trend | map</code></pre><h3>Pattern 3 — tell a sequence in rows</h3><pre><code>dashboard.add_chart([fig1, fig2, fig3, fig4, fig5, fig6])
+dashboard.set_chart_per_row([2, 3, 1])
+# Row 1: fig1 | fig2
+# Row 2: fig3 | fig4 | fig5
+# Row 3: fig6</code></pre><p class="validation"><strong>Constraints:</strong> call it after <code>add_chart()</code>. With six charts, <code>[2, 3, 1]</code> is valid; <code>[2, 2]</code> is not because it accounts for only four. Values of 0, 4, or non-numeric items are also invalid.</p></section>
+<section id="size" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>set_custom_size</h2><div class="signature"><code>set_custom_size(sizes_list)</code></div><p>Changes individual chart-card widths and heights. It is deliberately precise: the list must mirror the dashboard’s row structure. Read it from outside to inside: <code>sizes_list</code> → one entry per row → one <code>[width, height]</code> pair per chart in that row.</p><div class="when"><strong>What the numbers mean:</strong> <code>100</code> is the normal baseline for both dimensions. For height, <code>120</code> makes a card 20% taller than normal and <code>80</code> makes it 20% shorter. For width, numbers work as a row ratio: <code>[100, 100]</code> gives two equal-width cards (a 1:1 split), while <code>[60, 40]</code> gives the first card 60% of the row’s available width and the second 40%.</div><div class="when"><strong>How to read the brackets:</strong> the outer <code>[ ... ]</code> is the full dashboard; each inner <code>[ ... ]</code> is one row; each final <code>[width, height]</code> pair belongs to one chart card. When you do not set custom sizes, DashForge uses normal heights and equal-width cards within each row.</div><h3>Pattern 1 — two charts in one row</h3><p>There is one row, so the outer list has one item. That row contains two charts, so it has two size pairs.</p><pre><code>dashboard.set_chart_per_row([2])
+dashboard.set_custom_size([
+    [                 # Row 1
+        [65, 100],    # Chart 1: 65 wide, 100 high
+        [35, 100],    # Chart 2: 35 wide, 100 high
+    ]
+])</code></pre><h3>Pattern 2 — two charts, then three charts</h3><p>There are two rows, so the outer list has two items. The first row must have two pairs; the second must have three.</p><pre><code>dashboard.set_chart_per_row([2, 3])
+dashboard.set_custom_size([
+    [                 # Row 1 — two charts
+        [60, 105],    # first chart
+        [40, 105],    # second chart
+    ],
+    [                 # Row 2 — three charts
+        [34, 85],     # third chart overall
+        [33, 85],     # fourth chart overall
+        [33, 85],     # fifth chart overall
+    ],
+])</code></pre><!-- assets\Documentation\SizingChart.png --><h3>Pattern 3 — customize only the important row</h3><p>Use <code>None</code> for a row whose automatic sizing should remain untouched.</p><pre><code>dashboard.set_chart_per_row([1, 3])
+dashboard.set_custom_size([
+    [[100, 115]],  # Row 1: one larger hero chart
+    None,          # Row 2: DashForge's normal three-card sizing
+])</code></pre><p class="validation"><strong>Constraints:</strong> the number of outer entries must equal the number of rows. For a row of two charts, provide exactly two pairs. Each pair must contain exactly two numbers. Define <code>set_chart_per_row()</code> first when using a non-default row arrangement.</p></section>
+<section id="labels" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>Card titles &amp; subtitles</h2>
+<article class="api-entry"><div class="api-title"><h3>set_chart_titles</h3><code>set_chart_titles(titles)</code></div><p>Displays a title at the top of each chart card. The list follows the order in which figures were added, not their visual position after resizing. Use <code>None</code> for a card that should have no title.</p><pre><code>dashboard.set_chart_titles([
+    "Revenue trend",
+    "Orders by region",
+    None,
+])</code></pre><p class="validation"><strong>Good use:</strong> give card-level context that should remain visible even if the Plotly figure itself has no title.</p></article>
+<article class="api-entry"><div class="api-title"><h3>set_chart_subtitles</h3><code>set_chart_subtitles(subtitles)</code></div><p>Displays supporting text below each card title. It is useful for definitions, data windows, or a short explanation of what colors or annotations mean.</p><pre><code>dashboard.set_chart_subtitles([
+    "Actuals through 30 June",
+    "Color indicates sales territory",
+    None,
+])</code></pre><p class="validation"><strong>Tip:</strong> keep subtitles informative and short. They complement a title; they should not restate it.</p></article></section>
+<section id="maximize" class="doc-section api-group"><p class="eyebrow">API reference</p><h2>set_max_buttons</h2><div class="signature"><code>set_max_buttons(max_buttons)</code></div><p>A maximize button is the control on a chart card that lets a viewer expand that one chart to fill the chart area. When expanded, the other cards are hidden; selecting the control again returns to the normal grid. It is useful for dense charts where people need more room to inspect hover details, labels, or Plotly interactions.</p><p>By default, every chart receives this control. Use <code>set_max_buttons()</code> only when some cards should remain fixed in the normal dashboard layout. The boolean list follows the order in which charts were added: <code>True</code> shows the control, <code>False</code> removes it.</p><h3>Pattern 1 — keep the default behavior</h3><pre><code># No call needed: all chart cards can be maximized.</code></pre><h3>Pattern 2 — enable it only for detailed exploration</h3><p>Keep the control for a map and a detailed trend, but omit it from simple summary charts.</p><pre><code>dashboard.set_max_buttons([
+    False,  # revenue summary: keep compact
+    True,   # detailed trend: allow expansion
+    True,   # map: allow expansion
+    False,  # simple category chart: keep compact
+])</code></pre><!-- assets\Documentation\MaxView.png | assets\Documentation\MinView.png --><h3>Pattern 3 — intentionally disable all maximize controls</h3><pre><code>dashboard.set_max_buttons([False, False, False])</code></pre><p class="validation"><strong>Constraint:</strong> provide exactly one boolean per chart. A four-chart dashboard needs four entries; a mismatched list or non-boolean value raises <code>ValueError</code>.</p></section>
+<section class="doc-section final-example"><p class="eyebrow">Next</p><h2>Make the dashboard feel like yours</h2><p>Once the figures read in the right order, move on to themes, colors, header choices, font, logo, and footer details.</p><a class="button primary" href="appearance-and-branding.html">Appearance &amp; branding →</a></section>
+</div><footer class="site-footer"><span>DashForge documentation</span><span>Charts &amp; layout</span></footer></main></div><script src="Documentation.js"></script></body></html>
+
+
