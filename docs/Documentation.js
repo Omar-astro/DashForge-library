@@ -62,34 +62,34 @@
 
   const imageReferences = {
     'assets\\Documentation\\First_layout.png': {
-      src: '../assets/Documentation/First_layout.png',
+      src: 'assets/Documentation/First_layout.png',
       alt: 'A DashForge dashboard with a navigation header and chart cards',
       caption: 'A first DashForge dashboard after running the quick-start example.',
     },
     'assets\\Documentation\\3-1Layout.png': {
-      src: '../assets/Documentation/3-1Layout.png',
+      src: 'assets/Documentation/3-1Layout.png',
       alt: 'A DashForge dashboard arranged in a row of three charts followed by one chart',
       caption: 'The automatic three-plus-one chart layout.',
     },
     'assets\\Documentation\\SizingChart.png': {
-      src: '../assets/Documentation/SizingChart.png',
+      src: 'assets/Documentation/SizingChart.png',
       alt: 'A DashForge dashboard with chart cards of different widths and heights',
       caption: 'Custom chart sizing can emphasize the most important content.',
     },
     'assets\\gallery\\Layout5.5.png': {
-      src: '../assets/gallery/Layout5.5.png',
+      src: 'assets/gallery/Layout5.5.png',
       alt: 'A DashForge dataset page showing a filterable data table',
       caption: 'The optional dataset page gives viewers a filterable table of source data.',
     },
   };
   const imageGroups = {
     'assets\\Documentation\\MaxView.png | assets\\Documentation\\MinView.png': [
-      ['../assets/Documentation/MaxView.png', 'A DashForge chart card maximized to fill the dashboard', 'Expanded chart view.'],
-      ['../assets/Documentation/MinView.png', 'A DashForge dashboard in its regular chart-grid view', 'Regular chart-grid view.'],
+      ['assets/Documentation/MaxView.png', 'A DashForge chart card maximized to fill the dashboard', 'Expanded chart view.'],
+      ['assets/Documentation/MinView.png', 'A DashForge dashboard in its regular chart-grid view', 'Regular chart-grid view.'],
     ],
     'assets\\Documentation\\Final_output1.png | assets\\Documentation\\Final_output1.5.png': [
-      ['../assets/Documentation/Final_output1.png', 'The completed DashForge monthly sales dashboard', 'Completed dashboard overview.'],
-      ['../assets/Documentation/Final_output1.5.png', 'A detailed view of the completed DashForge dashboard', 'Completed dashboard detail.'],
+      ['assets/Documentation/Final_output1.png', 'The completed DashForge monthly sales dashboard', 'Completed dashboard overview.'],
+      ['assets/Documentation/Final_output1.5.png', 'A detailed view of the completed DashForge dashboard', 'Completed dashboard detail.'],
     ],
   };
   const figure = (src, alt, caption) => {
