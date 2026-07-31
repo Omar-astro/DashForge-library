@@ -1,7 +1,3 @@
-<div align="center">
-
-<img src="assets/Logo.png" alt="DashForge logo" width="130" />
-
 # DashForge
 
 ## Your Plotly charts deserve a dashboard—not hours of dashboard work.
@@ -12,12 +8,6 @@ No HTML. No CSS. No JavaScript. Just add your charts, run your code, and let
 DashForge handle the dashboard around them.
 
 [Why DashForge?](#why-dashforge) · [Quick start](#quick-start) · [Gallery](#gallery) · [Examples](#example-dashboards) · [Documentation](#documentation)
-
-</div>
-
-<p align="center">
-  <img src="assets/ExploreVid.gif" alt="DashForge dashboard preview" width="950" />
-</p>
 
 ---
 
@@ -81,8 +71,6 @@ Install DashForge from your terminal:
 pip install Dashforge
 ```
 
-**PyPI: https://pypi.org/project/dashforge/** <!-- Paste the PyPI library link here when it is ready. -->
-
 ## Quick start
 
 Start with the Plotly figures you have already made:
@@ -109,10 +97,6 @@ dashboard.run()
 
 ### Output
 
-<p align="center">
-  <img src="assets/Output.png" alt="Example dashboard created with DashForge" width="950" />
-</p>
-
 ## More than a chart grid
 
 DashForge is built to help a dashboard feel finished, not just display figures
@@ -132,47 +116,13 @@ color, and add a logo, footer, or timestamp for a more complete delivery.
 Here are a few ways DashForge dashboards can look. Alternate views are paired
 side by side; single layouts are shown at full width.
 
-<p align="center">
-  <img src="assets/gallery/Layout1.png" alt="DashForge layout 1" width="560" />
-  <img src="assets/gallery/Layout1.5.png" alt="DashForge layout 1 alternate view" width="560" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout2.png" alt="DashForge layout 2" width="900" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout3.png" alt="DashForge layout 3" width="560" />
-  <img src="assets/gallery/Layout3.5.png" alt="DashForge layout 3 alternate view" width="560" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout4.png" alt="DashForge layout 4" width="900" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout5.png" alt="DashForge layout 5" width="560" />
-  <img src="assets/gallery/Layout5.5.png" alt="DashForge layout 5 alternate view" width="560" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout6.png" alt="DashForge layout 6" width="560" />
-  <img src="assets/gallery/Layout6.5.png" alt="DashForge layout 6 alternate view" width="560" />
-</p>
-
-<p align="center">
-  <img src="assets/gallery/Layout7.png" alt="DashForge layout 7" width="560" />
-  <img src="assets/gallery/Layout7.5.png" alt="DashForge layout 7 alternate view" width="560" />
-</p>
-
 ## Example dashboards
 
 Want to see DashForge pushed in different directions? The repository includes
 ready-to-run examples with different color palettes, chart combinations,
 dashboard styles, KPI setups, dataset views, and layouts.
 
-Browse the [example dashboard collection](TestCases/README.md), then run any
-scenario from the project root:
+Browse the example dashboard collection, then run any scenario from the project root:
 
 ```powershell
 python TestCases/01_dark_command_center.py
@@ -199,22 +149,16 @@ please share it.
 
 ---
 
-<div align="center">
-
 ### Enjoying DashForge?
 
 If it saved you time, consider giving the repository a star and sharing it with
 another developer or analyst who could use a faster way to build dashboards.
-
-</div>
 
 ## Documentation
 
 The full documentation website will cover every feature and show how to get the
 most out of DashForge.
 
-**Documentation website:** <!-- Paste the documentation website link here when it is ready. -->
+## GitHub
 
-## License
-
-[MIT License](LICENSE)
+GitHub repository: 

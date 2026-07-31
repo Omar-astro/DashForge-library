@@ -1,0 +1,5 @@
+dash==3.3.0
+Flask==2.3.0
+pandas==2.3.3
+param==2.4.1
+plotly==6.4.0

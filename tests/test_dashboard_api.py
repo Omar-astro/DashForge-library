@@ -12,7 +12,7 @@ from plotly.graph_objects import Figure
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from dashforge.dashforge import Dashboard
+from dashforge import Dashboard
 
 
 class DashboardApiTests(unittest.TestCase):
